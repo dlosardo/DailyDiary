@@ -1,0 +1,353 @@
+########################
+########################
+########################
+#Data simulation for ALL models
+library(gregmisc) #for getting number of non-missing obs 
+
+rm(list=ls(all=TRUE)) #To remove all stored objects
+set.seed(3421345)
+noMC = 5 #number of Monte Carlo runs
+theTs = c(14) #Number of time points
+sampleSizes = c(300) #Number of participants
+
+######Ordering of Daily Diary Designs
+### 1 - Complete Data
+### 2 - One-Day Interval Design
+### 3 - One-Day Interval Stagger Design
+### 4 - One-Day Interval Block Design
+### 5 - Week, Staggered, No Overlap Block Design
+### 6 - Five-Day Staggered, One Day Overlap Block Design
+### 7 - Five-Day Staggered, Two Day Overlap Block Design
+### 8 - Skip the Weekend Design
+### 9 - Alternating Skip the Weekend Design
+### 10 - Reference, Block Design
+### 11 - Reference, Two-Day Overlap Block Design
+### 12 - Reference One-Day Interval Design
+### 13 - Partially Random
+
+theDesigns = c(1)#,7,6,11,12,13)
+
+##Ordering of Models
+### 1 - LCM
+### 2 - MLM
+### 3 - AR
+### 4 - MA
+theModelsDataGen = c(1)
+theModelsToEstimate = c(3)
+ARMA=TRUE
+nams = c("LCM","MLM","AR","MA")
+
+###Setting directories
+#directory with data generating and code compiling files
+masterDir="C:/Documents and Settings/Diane Losardo/Desktop/DDpaper/SimCode/Master/NewSims/DailyDiaryNewSims/DailyDiaryNewSims/"
+#Mplus directory
+mplusDir="C:/Program Files/Mplus/"
+#directory to store results
+resultsDir="C:/Documents and Settings/Diane Losardo/Desktop/DDpaper/newResults/"
+
+AllMC = NULL #Holds Monte Carlo results across conditions
+for (t in 1:length(theTs)){
+	for (s in 1:length(sampleSizes)){
+		if (ARMA) {MCfile = matrix(NA,noMC*length(theDesigns)*length(theModelsToEstimate),27)} else {MCfile = matrix(NA,noMC*length(theDesigns)*length(theModelsToEstimate),21)} #Holds Monte Carlo results within one condition
+					#21 comes from 18 pieces of output from Mplus plus 3
+		
+		for (mo in 1:length(theModelsDataGen)){
+			nt=theTs[t] 	# number of time points
+			np=sampleSizes[s]	# number of subjects
+			ne=2   	# number of latent variables
+			ny=1	# number of observed variables
+			modelDG = theModelsDataGen[mo]
+			for (run in 1:noMC){
+			if (modelDG==1){ source(paste(masterDir,"LCMdatagen.R",sep=""))
+			}
+			if (modelDG==2){ source(paste(masterDir,"MLMdatagen.R",sep=""))
+			}
+			if (modelDG==3){ source(paste(masterDir,"ARdatagen.R",sep=""))
+			}
+			if (modelDG==4){ source(paste(masterDir,"MAdatagen.R",sep=""))
+			}
+			data = paste(mplusDir,nams[modelDG],"data.dat",sep="") #data file
+			inp = paste(mplusDir,"file",nams[modelDG],".inp",sep="") #input file for Mplus
+			compile = paste(masterDir,"compile",nams[modelDG],"code.R",sep="") #r code for compiling Mplus code
+			batch = paste(resultsDir,nams[modelDG],"/mplusopen",nams[modelDG],".bat",sep="") #batch file for opening Mplus
+			batch = shQuote(batch)
+			outputmplus = paste(mplusDir,"results.dat",sep="") #results file that mplus outputs
+			outputfile = paste(mplusDir,"file",nams[modelDG],".out",sep="") #for errors - whole output file
+			resultsdir = paste(resultsDir,nams[modelDG],"/",nams[modelDG],"D",sep="") #directory path where final results will be stored
+			resultsdir1 = paste(resultsDir,nams[modelDG],"/",nams[modelDG],".results.D",sep="")			
+			
+				for (d in 1:length(theDesigns)){
+					design = theDesigns[d] #Daily Diary Design
+					############
+					##for all data:
+					if (design==1) {
+						nonmiss = c(1,2,3,4,5,6,7,8,9,10,11,12,13,14)
+						nonmissall = matrix(nonmiss,np,length(nonmiss),byrow = T)
+						combine = nonmiss
+					}
+					##################################################
+					#Creating missingness for One-Day Interval Design#
+					##################################################
+					if (design==2) {
+						nonmiss = c(1,3,5,7,9,11,13) #vector of non-missing days
+						nonmissall = matrix(nonmiss,np,length(nonmiss),byrow = T) #matrix has non-missing data points
+						combine = nonmiss
+					}
+					##########################################################
+					#Creating missingness for One-Day Interval Stagger Design#
+					##########################################################
+					if (design==3) {
+						nonmiss.1 = c(1,3,5,7,9,11,13)
+						nonmiss.2 = c(2,4,6,8,10,12,14)
+						nonmiss = matrix(nonmiss.1,(np/2),length(nonmiss.1),byrow = T) #matrix has non-missing data points
+						nonmiss1 = matrix(nonmiss.2,(np/2),length(nonmiss.2),byrow = T)
+						nonmissall = rbind(nonmiss,nonmiss1)
+						combine = c(nonmiss.1,nonmiss.2)
+						combine = unique(combine)
+						combine = sort(combine,na.last=NA)
+					}
+					##########################################################
+					#Creating missingness for One-Day Interval Block Design#
+					##########################################################
+					if (design==4) {
+						nonmiss.1 = c(1,3,5,7)
+						nonmiss.2 = c(8,10,12,14)
+						nonmiss = matrix(nonmiss.1,(np/2),length(nonmiss.1),byrow = T) #matrix has non-missing data points
+						nonmiss1 = matrix(nonmiss.2,(np/2),length(nonmiss.2),byrow = T)
+						nonmissall = rbind(nonmiss,nonmiss1)
+						combine = c(nonmiss.1,nonmiss.2)
+						combine = unique(combine)
+						combine = sort(combine,na.last=NA)
+					}
+					#################################################################
+					#Creating missingness for Week,Staggered,No Overlap Block Design#
+					#################################################################
+					if (design==5) {
+						nonmiss.1 = c(1,2,3,4,5,6,7)
+						nonmiss.2 = c(8,9,10,11,12,13,14)
+						nonmiss = matrix(nonmiss.1,(np/2),length(nonmiss.1),byrow = T) #matrix has non-missing data points
+						nonmiss1 = matrix(nonmiss.2,(np/2),length(nonmiss.2),byrow = T)
+						nonmissall = rbind(nonmiss,nonmiss1)
+						combine = c(nonmiss.1,nonmiss.2)
+						combine = unique(combine)
+						combine = sort(combine,na.last=NA)
+						}
+					#################################################################
+					#Five-Day Staggered, (no?) Overlap Block Design#
+					#################################################################
+					if (design==6) {
+						nonmiss.1 = c(1,2,3,4,5,NA)
+						nonmiss.2 = c(5,6,7,8,9,10)
+						nonmiss.3 = c(10,11,12,13,14,NA)
+						nonmiss = matrix(nonmiss.1,((np/3)+(np%%3)),length(nonmiss.1),byrow = T) #matrix has non-missing data points
+						nonmiss1 = matrix(nonmiss.2,(np/3),length(nonmiss.2),byrow = T)
+						nonmiss2 = matrix(nonmiss.3,(np/3),length(nonmiss.3),byrow = T)
+						nonmissall = rbind(nonmiss,nonmiss1,nonmiss2)
+						combine = c(nonmiss.1,nonmiss.2,nonmiss.3)
+						combine = unique(combine)
+						combine = sort(combine,na.last=NA)
+					}
+					#################################################################
+					#Five-Day Staggered, Two-Day Overlap Block Design#
+					#################################################################
+					if (design==7) {
+						nonmiss.1 = c(1,2,3,4,5)
+						nonmiss.2 = c(4,5,6,7,8)
+						nonmiss.3 = c(7,8,9,10,11)
+						nonmiss.4 = c(10,11,12,13,14)
+						nonmiss = matrix(nonmiss.1,((np/4)+(np%%4)),length(nonmiss.1),byrow = T) #matrix has non-missing data points
+						nonmiss1 = matrix(nonmiss.2,(np/4),length(nonmiss.2),byrow = T)
+						nonmiss2 = matrix(nonmiss.3,(np/4),length(nonmiss.3),byrow = T)
+						nonmiss3 = matrix(nonmiss.4,(np/4),length(nonmiss.3),byrow = T)
+						nonmissall = rbind(nonmiss,nonmiss1,nonmiss2,nonmiss3)
+						combine = c(nonmiss.1,nonmiss.2,nonmiss.3,nonmiss.4)
+						combine = unique(combine)
+						combine = sort(combine,na.last=NA)
+						}
+					#################################################################
+					#Skip the Weekend Design#
+					#################################################################
+					if (design==8) {
+						nonmiss.1 = c(1,2,3,4,7,8,9,10,11,14)
+						nonmissall = matrix(nonmiss.1,(np),length(nonmiss.1),byrow = T) #matrix has non-missing data points
+						combine = nonmiss.1
+						}
+					#################################################################
+					#Alternating Skip the Weekend Design#
+					#################################################################
+					if (design==9) {
+						nonmiss.1 = c(1,3,7,9,11,14)
+						nonmissall = matrix(nonmiss.1,(np),length(nonmiss.1),byrow = T) #matrix has non-missing data points
+						combine = nonmiss.1
+					}
+					#################################################################
+					#The Reference, Block design#
+					#################################################################
+					if (design==10) {
+						nonmiss.1 = c(1,2,3,4,5,14,NA)
+						nonmiss.2 = c(1,6,7,8,9,10,14)
+						nonmiss.3 = c(1,11,12,13,14,NA,NA)
+						nonmiss = matrix(nonmiss.1,((np/3)+(np%%3)),length(nonmiss.1),byrow = T) #matrix has non-missing data points
+						nonmiss1 = matrix(nonmiss.2,(np/3),length(nonmiss.2),byrow = T)
+						nonmiss2 = matrix(nonmiss.3,(np/3),length(nonmiss.3),byrow = T)
+						nonmissall = rbind(nonmiss,nonmiss1,nonmiss2)
+						combine = c(nonmiss.1,nonmiss.2,nonmiss.3)
+						combine = unique(combine)
+						combine = sort(combine,na.last=NA)
+						}
+					#################################################################
+					#Reference, Two-Day Overlap Block Design#
+					#################################################################
+					if (design==11) {
+						nonmiss.1 = c(1,2,3,4,5,14,NA)
+						nonmiss.2 = c(1,4,5,6,7,8,14)
+						nonmiss.3 = c(1,7,8,9,10,11,14)
+						nonmiss.4 = c(1,10,11,12,13,14,NA)
+						nonmiss = matrix(nonmiss.1,((np/4)+(np%%4)),length(nonmiss.1),byrow = T) #matrix has non-missing data points
+						nonmiss1 = matrix(nonmiss.2,(np/4),length(nonmiss.2),byrow = T)
+						nonmiss2 = matrix(nonmiss.3,(np/4),length(nonmiss.3),byrow = T)
+						nonmiss3 = matrix(nonmiss.4,(np/4),length(nonmiss.3),byrow = T)
+						nonmissall = rbind(nonmiss,nonmiss1,nonmiss2,nonmiss3)
+						combine = c(nonmiss.1,nonmiss.2,nonmiss.3,nonmiss.4)
+						combine = unique(combine)
+						combine = sort(combine,na.last=NA)
+					}
+					#################################################################
+					#Reference One-Day Interval Design                              #
+					#################################################################
+					if (design==12) {
+						nonmiss.1 = c(1,2,3,5,7,9,11,13,14)
+						nonmiss.2 = c(1,2,4,6,8,10,12,13,14)
+						nonmiss = matrix(nonmiss.1,(np/2),length(nonmiss.1),byrow = T) #matrix has non-missing data points
+						nonmiss1 = matrix(nonmiss.2,(np/2),length(nonmiss.2),byrow = T)
+						nonmissall = rbind(nonmiss,nonmiss1)
+						combine = c(nonmiss.1,nonmiss.2)
+						combine = unique(combine)
+						combine = sort(combine,na.last=NA)
+						}
+					#########################################################
+					#################################################################
+					#Randomly Sampled Design	                                  #
+					#################################################################
+					#if (design==13) {
+						#nonmissall = NULL
+						#for (m in 1:np){ 
+							#samp = 1:14
+							#nonmiss.1 = sample(samp,9)
+							#nonmiss.1 = sort(nonmiss.1)
+							#nonmissall = rbind(nonmissall,nonmiss.1)
+						#}	
+					#}
+
+					if (design==13) {
+						nonmissall = NULL
+						combine = NULL
+						for (m in 1:np){
+							samp1 = c(1,3,5,7,9,11,13)
+							nonmiss.1 = sample(samp1,1)
+							nonmiss.1 = c(nonmiss.1,nonmiss.1+1)
+							samp2 = 1:14
+							samp3 = samp2[-(nonmiss.1)]
+							nonmiss.2 = sample(samp3,3)
+							nonmiss.3 = c(nonmiss.1,nonmiss.2)
+							nonmiss.3 = sort(nonmiss.3)
+							nonmissall = rbind(nonmissall,nonmiss.3)
+							combine = c(combine,nonmiss.3)
+							combine = unique(combine)
+							combine = sort(combine,na.last=NA)
+							}
+						}
+					#########################################################
+	
+					yx=yall
+					thedata1 = NULL
+					for (j in 1:np){
+						temp = nonmissall[j,]
+						y2 = (yx[(1+(j-1)*nt):(j*nt),1]) #Taking the first person's observations
+						y3 = y2[nonmissall[j,1:nobs(temp)]]   #Now taking just the values corresponding to nonmissing time points
+						if (modelDG==2){
+							x2 = (yx[(1+(j-1)*nt):(j*nt),2])
+							x3 = x2[nonmissall[j,1:nobs(temp)]]
+							yx4 = matrix(NA,nt,3)
+							temp1 = nonmissall[j,1:nobs(temp)]
+							yx4[temp1,1] = y3
+							yx4[temp1,2] = x3
+							yx4[,3] = j
+							thedata1 = rbind(thedata1,yx4)
+						}
+						else{
+							y4 = matrix(NA,nt,1)
+							temp1 = nonmissall[j,1:nobs(temp)]
+							y4[temp1,1] = y3
+							thedata1 = rbind(thedata1,y4)
+						}
+					}
+					#Transforming to wide format
+					thedata1[is.na(thedata1)] = "."
+					if (modelDG==1 | modelDG==3 | modelDG==4){
+						Wide1 = NULL
+						for (j in 1:np){
+							personi = thedata1[(1+(j-1)*nt):(j*nt),1]
+							Wide1 = rbind(Wide1,personi)
+						}
+						id = c(1:np)
+						Wide1 = cbind(Wide1,id)
+						#exporting
+						write(t(Wide1),file=data,ncolumn=(nt+1),append=FALSE)
+					}
+					else {write(t(thedata1),file=data,ncolumn=(ny+2),append=FALSE)
+						}
+				
+					#Here is where the data is estimated with a different model
+					#if (length(theModelsToEstimate)>1){
+						for (mest in 1:length(theModelsToEstimate)){
+								print(paste(c(" iter ", run," N ", np, "D" ,d)))
+								modelEst = theModelsToEstimate[mest]
+								compile = paste(masterDir,"compile",nams[modelEst],"code.R",sep="") #r code for compiling Mplus code
+
+								#getting the proper data formation if MLM is estimated
+								if (modelEst==2){
+									X=matrix(NA,nt*np,1)
+									idk=matrix(NA,nt*np,1)
+									for (k in 1:np){
+										X[(1+(k-1)*nt):(nt*k),1]=runif(nt)
+										idk[(1+(k-1)*nt):(nt*k),1]=k
+										}
+									thedata1=cbind(thedata1,X,idk)
+									write(t(thedata1),file=data,ncolumn=(ny+2),append=FALSE)
+									}
+							
+								#Opening Mplus
+								source(paste(c(compile),sep="",collapse=""))
+								system(paste(batch),wait = TRUE)
+								file1 = outputmplus
+								MCfile[length(theDesigns)*noMC*(mest-1)+d+(run-1)*length(theDesigns),1] = paste("DG",nams[modelDG],"EST",nams[modelEst],run,"D",d,"N",np,sep="")#theTs[t]
+								MCfile[length(theDesigns)*noMC*(mest-1)+d+(run-1)*length(theDesigns),2] = paste("DG",nams[modelDG],sep="")#sampleSizes[s]
+								MCfile[length(theDesigns)*noMC*(mest-1)+d+(run-1)*length(theDesigns),3] = paste("EST",nams[modelEst],sep="")#theDesigns[d]
+								results = scan(file1,what="")
+								#the following checks to see if there were errors and values were not saved
+								output = outputfile
+								output1 = scan(output,what="")
+								output2 = output1[output1 %in% c("not", "terminate", "normally.")]
+								if (length(output2)==3) results = rep(NA,length(results))
+								output3 = output1[output1 %in% c("ERROR")]
+								if (length(output3)==1) results = rep(NA,length(results))
+								MCfile[length(theDesigns)*noMC*(mest-1)+d+(run-1)*length(theDesigns),4:(length(results)+3)] = results #Mplus gives 18 pieces of results for this particular model - varies depending on model and number of parameters estimated
+					
+								}
+							
+					}#d loop
+				}# MC loop
+			AllMC = rbind(AllMC,MCfile)
+			write(t(MCfile),file = paste(c(resultsdir,"N",sampleSizes[s],"T",theTs[t],".txt"),sep="",collapse=""),ncol=dim(MCfile)[2],append=F)
+			}# mo loop
+		}# s loop
+	}#t loop
+
+#plot(1:nt,Wide1[1,1:nt],type="n")#,ylim=c(min(Wide1[,1:nt]),max(Wide1[,1:nt])))
+#for (i in 1:np){
+#	temp = Wide1[i,1:nt]
+#	lines(1:nt,temp)
+#	}
+
+#write(t(AllMC),file = "C:/Documents and Settings/Diane Losardo/Desktop/DDpaper/newResults/LCM/final/ALLRESULTS.dat",ncol=dim(AllMC)[2],append=F)
