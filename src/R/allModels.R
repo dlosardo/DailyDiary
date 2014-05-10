@@ -5,8 +5,9 @@
 library(gregmisc) #for getting number of non-missing obs 
 
 #constants 
-nlvs <- 2
+nlv <- 2
 ny <- 1
+nx <- 0
 
 #rm(list=ls(all=TRUE)) #To remove all stored objects
 set.seed(3421345)
@@ -39,7 +40,7 @@ designs = c(1)#,7,6,11,12,13)
 data_generating_models = c(1)
 estimated_models = c(3)
 ARMA = TRUE
-model_names = c("LCM","MLM","AR","MA")
+model_names = c("LCM", "MLM", "AR", "MA")
 
 ###Setting directories
 #directory with data generating and code compiling files
@@ -50,14 +51,14 @@ results_dir = "data/output"
 
 all_results = NULL # Holds Monte Carlo results across conditions
 for (t in 1:length(time_points)){
+  nt = time_points[t] 	# number of time points
 	for (s in 1:length(sample_sizes)){
+	  np = sample_sizes[s]	# number of subjects
 		#if (ARMA) {MCfile = matrix(NA,noMC*length(theDesigns)*length(theModelsToEstimate),27)} else {MCfile = matrix(NA,noMC*length(theDesigns)*length(theModelsToEstimate),21)} #Holds Monte Carlo results within one condition
 					#21 comes from 18 pieces of output from Mplus plus 3
-		
 		for (m in 1:length(data_generating_models)){
-			nt = time_points[t] 	# number of time points
-			np = sample_sizes[s]	# number of subjects
 			cur_model = data_generating_models[m]
+      model_name <- model_names[cur_model]
 			for (run in 1:nreps){
 			  if (cur_model==1){
           source("src/R/LCMdatagen.R")
@@ -69,17 +70,17 @@ for (t in 1:length(time_points)){
           source("src/R/ARdatagen.R")
   			}
   			if (cur_model==4){ 
-          source("src/R/MAdatagen.R",sep=""))
+          source("src/R/MAdatagen.R",sep="")
   			}
-			data = paste(mplus_dir, nams[modelDG], "data.dat",sep="") #data file
-			inp = paste(mplusDir,"file",nams[modelDG],".inp",sep="") #input file for Mplus
-			compile = paste(masterDir,"compile",nams[modelDG],"code.R",sep="") #r code for compiling Mplus code
-			batch = paste(resultsDir,nams[modelDG],"/mplusopen",nams[modelDG],".bat",sep="") #batch file for opening Mplus
-			batch = shQuote(batch)
-			outputmplus = paste(mplusDir,"results.dat",sep="") #results file that mplus outputs
-			outputfile = paste(mplusDir,"file",nams[modelDG],".out",sep="") #for errors - whole output file
-			resultsdir = paste(resultsDir,nams[modelDG],"/",nams[modelDG],"D",sep="") #directory path where final results will be stored
-			resultsdir1 = paste(resultsDir,nams[modelDG],"/",nams[modelDG],".results.D",sep="")			
+			  data = paste("data/work/", model_name, ".data.dat", sep = "") #data file
+			  inp = paste("src/mplus/", model_name,".inp", sep = "") #input file for Mplus
+		  	compile = paste("src/R/compile", model_name, "code.R", sep = "") #r code for compiling Mplus code
+			  shell_file = paste(resultsDir, model_name,"/mplusopen", model_name,".bat", sep="") #batch file for opening Mplus
+		  	shell_file = shQuote(shell_file)
+	  		results_mplus = paste(mplusDir, "results.dat", sep = "") #results file that mplus outputs
+	  		output_mplus = paste(mplusDir,"file", model_name,".out",sep="") #for errors - whole output file
+	  		resultsdir = paste(resultsDir, model_name,"/", model_name,"D",sep="") #directory path where final results will be stored
+		  	resultsdir1 = paste(resultsDir, model_name,"/", model_name,".results.D",sep="")			
 			
 				for (d in 1:length(designs)){
 					design = designs[d] #Daily Diary Design
