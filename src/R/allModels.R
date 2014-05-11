@@ -4,11 +4,47 @@
 #Data simulation for ALL models
 library(gregmisc) #for getting number of non-missing obs 
 
+# Calculates the number of variables given a vector of unique elements in a covariance matrix
+get_num_vars <- function(x){
+  (sqrt(8 * x + 1) - 1)/2
+}
+
+vector_to_symmetric_cov_matrix <- function(values){
+  nvars <- get_num_vars(length(values))
+  mat <- matrix(0, nvars, nvars)
+  mat[upper.tri(mat, diag = TRUE)] <- values  #full acov matrix
+  mat <- mat + t(mat) - diag(diag(mat)) #making acov square
+  return(mat)
+}
+vector_to_non_symmetric_square_matrix <- function(values){
+  nvars <- sqrt(length(values))
+  mat <- matrix(values, nvars, nvars, byrow = TRUE)
+  return(mat)
+}
+
+lv_cov_matrix <- function(values){
+  vector_to_symmetric_cov_matrix(values)
+}
+
+transition_matrix <- function(values){
+  vector_to_non_symmetric_square_matrix(values)
+}
+
+#Creating shell file
+create_shell_script = function(name, dir, file){
+  cat(paste("#!/bin/sh
+							
+cd ", dir, "\n
+/Applications/Mplus/mplus ", dir, "/", name, ".inp > ", dir, "/file", name, ".out"
+            , sep = ""), file = file, append = FALSE)
+}
+
 #constants 
 nlv <- 2
 ny <- 1
 nx <- 0
-
+# lv covs, measurement covs 
+pop_values <- list(c(.3, .05, .1), c(1.2, 1.2, 1.2, 1.2, 1.2, 1.2), c(1,0.02))
 #rm(list=ls(all=TRUE)) #To remove all stored objects
 set.seed(3421345)
 nreps = 5 #number of Monte Carlo runs
@@ -75,12 +111,11 @@ for (t in 1:length(time_points)){
 			  data = paste("data/work/", model_name, ".data.dat", sep = "") #data file
 			  inp = paste("src/mplus/", model_name,".inp", sep = "") #input file for Mplus
 		  	compile = paste("src/R/compile", model_name, "code.R", sep = "") #r code for compiling Mplus code
-			  shell_file = paste(resultsDir, model_name,"/mplusopen", model_name,".bat", sep="") #batch file for opening Mplus
+			  shell_file = paste("bin/", model_name, "mplusopen", model_name,".sh", sep="") #batch file for opening Mplus
 		  	shell_file = shQuote(shell_file)
-	  		results_mplus = paste(mplusDir, "results.dat", sep = "") #results file that mplus outputs
-	  		output_mplus = paste(mplusDir,"file", model_name,".out",sep="") #for errors - whole output file
-	  		resultsdir = paste(resultsDir, model_name,"/", model_name,"D",sep="") #directory path where final results will be stored
-		  	resultsdir1 = paste(resultsDir, model_name,"/", model_name,".results.D",sep="")			
+	  		results_mplus = paste("data/work/mplus/results/", model_name, "_results.dat", sep = "") #results file that mplus outputs
+	  		output_mplus = paste("data/work/mplus", model_name, ".out",sep="") #for errors - whole output file
+	  		results_dir = paste("data/work/mplus", model_name, "/", model_name, "D",sep="") #directory path where final results will be stored
 			
 				for (d in 1:length(designs)){
 					design = designs[d] #Daily Diary Design
@@ -263,6 +298,48 @@ for (t in 1:length(time_points)){
 							combine = sort(combine,na.last=NA)
 							}
 						}
+					#########################################################
+					###################################################################
+					#Two Consecutive Days Max With Number Data Points Equal to Random #
+					###################################################################
+					if (design==14) {
+					  nonmiss.1 = c(1,2,3,5,7,9,11,13,14)
+					  nonmiss.2 = c(1,2,4,6,8,10,12,13,14)
+					  samp1 = sort(sample(nonmiss.1[3:7], 2))
+					  samp2 = sort(sample(nonmiss.2[3:7], 2))
+					  
+					  nonmiss.1 = c(c(1,2), samp1, c(13, 14))
+					  nonmiss.2 = c(c(1,2), samp2, c(13, 14))
+					  nonmiss = matrix(nonmiss.1,(np/2),length(nonmiss.1),byrow = T) #matrix has non-missing data points
+					  nonmiss1 = matrix(nonmiss.2,(np/2),length(nonmiss.2),byrow = T)
+					  nonmissall = rbind(nonmiss,nonmiss1)
+					  combine = c(nonmiss.1,nonmiss.2)
+					  combine = unique(combine)
+					  combine = sort(combine,na.last=NA)
+					}
+					#########################################################
+					###################################################################
+					#Random with 8 time points #
+					###################################################################
+					if (design==15) {
+					  nonmissall = NULL
+					  combine = NULL
+					  for (m in 1:np){
+					    samp1 = c(1,3,5,7,9,11,13)
+					    nonmiss.1 = sample(samp1,1)
+					    nonmiss.1 = c(nonmiss.1,nonmiss.1+1)
+					    samp2 = 1:14
+					    samp3 = samp2[-(nonmiss.1)]
+					    nonmiss.2 = sample(samp3,6)
+					    nonmiss.3 = c(nonmiss.1,nonmiss.2)
+					    nonmiss.3 = sort(nonmiss.3)
+					    nonmissall = rbind(nonmissall,nonmiss.3)
+					    combine = c(combine,nonmiss.3)
+					    combine = unique(combine)
+					    combine = sort(combine,na.last=NA)
+					  }
+					}
+					
 					#########################################################
 	
 					yx=yall

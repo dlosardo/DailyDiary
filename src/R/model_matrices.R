@@ -1,11 +1,5 @@
 if(!AR1){
 
-#nt=theTs[ss] 	# number of time points
-#nlvs=2   	# number of states (LVs)
-#ny=6	# number of observed 
-nx=0    # number of fixed regressors
-#np=sampleSizes[ss]	# number of subjects
-
 if(!INIT){
   npad = 50 # start up
   ist = npad + 1   
@@ -16,32 +10,34 @@ if(INIT){
   ist = 1
 }
 
-if (model == 1 | model == 2){
+#if (model == 1 | model == 2){
+# y = c + Z*lvs + error, error ~ N(0, U)
+# lvs_t = d + T*lvs_{t-1} + disturbance, disturbance ~ N(0, V)
 # Z
-factor_loadings <- matrix(c(rep(1, nt), 1:nt), nt, nlvs)
+lv_coef <- matrix(c(rep(1, nt), 1:nt), nt, nlv)
 # V
-V = matrix(c(
-popValues[5],popValues[6],
-popValues[6],popValues[7]
-),nlvs,nlvs,byrow=T)
+lv_covs = lv_cov_matrix(c(0, 0, 0))
 # T
-T=matrix(c(
-popValues[8],popValues[9],
-popValues[10],popValues[11]),nlvs,nlvs,byrow=T)
+lv_transition = diag(nlv)
 # U
-U=diag(c(popValues[12],popValues[13],popValues[14],
-	popValues[15],popValues[16],popValues[17]))
+measurement_covs = diag(pop_values[[2]], ny*nt, ny*nt)
 # c
-c=matrix(c(0,0),nlvs,1,byrow=T)
+lv_intercepts = matrix(rep(0, nlv), nlv, 1, byrow = TRUE)
 # d
 #d=matrix(c(3.4,2.5,4.4,5.2,3,4),ny,1,byrow=T)
-d=matrix(c(0,0,0,0,0,0),ny,1,byrow=T)
+measurement_intercepts = matrix(rep(0, ny*nt), ny*nt, 1, byrow = TRUE)
 # states a t=1
 
+lv0 = matrix(rep(pop_values[[3]], nlv), nlv, 1, byrow=T)
+lv_covs0 = lv_cov_matrix(pop_values[[1]])
+
+chol_measurement_covs <- chol(measurement_covs)
+chol_lv_covs <- if(det(lv_covs) > 0) chol(lv_covs) else matrix(0, nlv, nlv)
+chol_lv_covs0 <- chol(lv_covs0)
 #for AR(1)
 if(AR1){
 nt=20 	# number of time points
-nlvs=1   	# number of states
+nlv=1   	# number of states
 ny=1	# number of observed 
 nx=0    # number of fixed regressors
 np=100	# number of subjects
@@ -53,25 +49,21 @@ INIT=FALSE
 # Z
 Z=matrix(c(
 1,0),
-ny,nlvs,byrow=T)
+ny,nlv,byrow=T)
 # V
 V=matrix(c(
-1),nlvs,nlvs,byrow=T)
+1),nlv,nlv,byrow=T)
 # T
 T=matrix(c(
-1),nlvs,nlvs,byrow=T)
+1),nlv,nlv,byrow=T)
 # U
 U=matrix(c(0),ny,ny,byrow=T)
 # c
-c=matrix(c(.8),nlvs,1,byrow=T)
+c=matrix(c(.8),nlv,1,byrow=T)
 # d
 d=matrix(c(0),ny,1,byrow=T)
 # states a t=0
-lv0 = matrix(rep(0, nlvs), nlvs, 1, byrow=T)
-cov_lv0=matrix(c(1000,0,0,
-			0,1000,0,
-			0,0,1000),
-			nlvs,nlvs,byrow=T)
+
 # cholesky of Q & R 
 Vs = chol(V)
 Us = ifelse(det(U)>0,chol(U),0)
