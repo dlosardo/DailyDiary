@@ -3,8 +3,8 @@
 ##########################################################################
 
 
-labs = paste(c("Y"),combine,sep="")
-ints = paste(c(labs),"@1",sep="")
+var_names = paste(c("Y"), combine, sep = "")
+ints = paste(c(labs), "@1", sep = "")
 slps = paste(c(labs),"@",sep="")
 slps = paste(c(slps),(combine-1),sep="")
 ints1 = paste(c(labs),"@0",sep="")
