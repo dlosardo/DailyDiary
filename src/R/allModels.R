@@ -31,11 +31,11 @@ transition_matrix <- function(values){
 }
 
 #Creating shell file
-create_shell_script = function(name, dir, file){
+create_shell_script = function(name, dir_in, dir_out, file){
   cat(paste("#!/bin/sh
 							
-cd ", dir, "\n
-/Applications/Mplus/mplus ", dir, "/", name, ".inp > ", dir, "/file", name, ".out"
+cd ", dir_in, "\n
+/Applications/Mplus/mplus ", dir_in, "/", name, ".inp > ", dir_out, "/", name, ".out"
             , sep = ""), file = file, append = FALSE)
 }
 
@@ -109,13 +109,13 @@ for (t in 1:length(time_points)){
           source("src/R/MAdatagen.R",sep="")
   			}
 			  data = paste("data/work/", model_name, ".data.dat", sep = "") #data file
-			  inp = paste("src/mplus/", model_name,".inp", sep = "") #input file for Mplus
+			  inp = paste("src/mplus/", model_name, ".inp", sep = "") #input file for Mplus
 		  	compile = paste("src/R/compile", model_name, "code.R", sep = "") #r code for compiling Mplus code
 			  shell_file = paste("bin/", model_name, "mplusopen", model_name,".sh", sep="") #batch file for opening Mplus
 		  	shell_file = shQuote(shell_file)
-	  		results_mplus = paste("data/work/mplus/results/", model_name, "_results.dat", sep = "") #results file that mplus outputs
+	  		results_mplus = paste("data/work/mplus/item_parameters/", model_name, "_results.dat", sep = "") #results file that mplus outputs
 	  		output_mplus = paste("data/work/mplus", model_name, ".out",sep="") #for errors - whole output file
-	  		results_dir = paste("data/work/mplus", model_name, "/", model_name, "D",sep="") #directory path where final results will be stored
+	  		results_dir = paste("data/work/mplus/", model_name, "/", model_name, "D",sep="") #directory path where final results will be stored
 			
 				for (d in 1:length(designs)){
 					design = designs[d] #Daily Diary Design

@@ -1,22 +1,21 @@
 #!/usr/bin/env Rscript
 #
-
 library(reshape2)
 
-create_mplus_script <- function(model_type, score_type, test_name, estimator, ncategories = 4, items, item_groups){
+create_mplus_script <- function(model_type, estimator, items, item_groups = 0, ncategories = 4){
   to_save_dir <- "data/work/mplus"
   input_dir <- "src/mplus"
   data_dir <- "data/work/prepped"
   
-  identifier <- sprintf("%s.%s.%s", test_name, model_type, estimator)
+  identifier <- model_type
   file_model <- paste(input_dir, "/", identifier, ".inp", sep = "")
   
-  demo_vars <- c("sid", "cid", "tid", "scid", "lname")
+  demo_vars <- ""
   
   
   title <- paste("title: ", identifier, ";\n")
-  data <- get_data_command(data_dir, test_name, score_type)
-  variables <- get_variable_command(model_type, demo_vars, items)
+  data <- get_data_command(data_dir, model_type)
+  variables <- get_variable_command("CONTINUOUS", demo_vars, items)
   analysis <- get_analysis_command(model_type, estimator)
   model <- get_model_command(model_type, items, ncategories, item_groups)
   output <- "\noutput:tech1;\n"
@@ -26,8 +25,8 @@ create_mplus_script <- function(model_type, score_type, test_name, estimator, nc
   cat(title,  file = file_model, append = FALSE, sep="")
   cat(data, variables, analysis, model, output, savedata, file = file_model, fill = TRUE, append = TRUE)
 }
-get_data_command <- function(data_dir, test_name, score_type){
-  data_file_name <- sprintf("%s/%s.%s.dat", data_dir, test_name, score_type)
+get_data_command <- function(data_dir, model_type){
+  data_file_name <- sprintf("%s/%s.dat", data_dir, model_type)
   data_file <- paste("\ndata: file = ", shQuote(data_file_name), ";\n")
   return(data_file)
 }
@@ -41,8 +40,8 @@ data_scales <- function(data_scale){
     return("")
   else return("ERROR: NOT A VALID DATA SCALE")
 }
-get_variable_command <- function(model_type, demo_vars, items){
-  data_scale <- data_scales(model_type)
+get_variable_command <- function(data_scale, demo_vars, items){
+  data_scale <- data_scales(data_scale)
   names <- paste0(c("names =" , c(demo_vars, items), ";\n"))
   usevariables <- paste0(c("\tusevariables =", items, ";\n"))
   data_types <- ""
@@ -120,6 +119,15 @@ get_model_command <- function(model_type, items, ncategories, item_groups){
       covs <- c(covs, paste("\t", fs[i], " with ", fs[(i+1):(length(fs))], ";\n"))
     }
     model <- paste0(c("\nmodel: \n" ,model, covs))
+  }else if(model_type == "LCM") {
+    nt <- max(grep("[0-9]+", items))
+    model <- c(
+      paste0("int by ", items, "@1;\n"),
+      paste0("slp by ", items, "@", 0:(nt-1), ";\n"),
+      paste0("int with slp;\nint slp;\n[int slp];\n"),
+      paste0("[", items, "@0];\n"),
+      paste0(items, ";\n"))
+    
   }else {
     model = ""
   } 
@@ -143,30 +151,3 @@ get_savedata_command <- function(model_type, identifier, to_save_dir){
   savedata <- paste0("\nsavedata: \n", results, fscores, probs, estimates)
   savedata
 }
-
-main <- function(time_point, input_file, info_file, score_type, model_type, estimator){
-  input_data <- read.csv(input_file, stringsAsFactors = FALSE)
-  input_data <- subset(input_data, lesson_name == time_point)
-  ncategories <- length(levels(factor(input_data$correct_answer)))
-  
-  item_info <- unique(input_data[, c("item_name", "passage_id")])
-  item_info <- item_info[order(as.numeric(gsub('[a-zA-Z]+', "", item_info$item_name))),]
-  items <- tolower(substr(item_info$item_name, 0, 8))  
-  item_groups <- item_info$passage_id
-  test_name <- sprintf("read.comp.%s", time_point)
-  create_mplus_script(model_type, score_type, test_name, estimator, ncategories = ncategories,  items, item_groups)
-}
-
-DEFAULT_TIME_POINT = 'post'
-DEFAULT_SCORE_TYPE = 'raw'
-DEFAULT_MODEL_TYPE = 'CFA'
-DEFAULT_ESTIMATOR = "WLSMV"
-DEFAULT_INPUT_FILE = 'data/work/prepped/read.comp.scored.csv'
-args <- commandArgs(trailingOnly=TRUE);
-time_point <- nvl(args[1], DEFAULT_TIME_POINT)
-score_type <- nvl(args[2], DEFAULT_SCORE_TYPE)
-model_type <- nvl(args[3], DEFAULT_MODEL_TYPE)
-estimator <- nvl(args[4], DEFAULT_ESTIMATOR)
-input_file <- nvl(args[5], DEFAULT_INPUT_FILE)
-
-main(time_point, input_file, info_file, score_type, model_type, estimator)

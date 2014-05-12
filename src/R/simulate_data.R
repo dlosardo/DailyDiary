@@ -31,8 +31,13 @@ for (i in 1:np){
 #Transforming to wide format for complete data set
 y_all <- data.frame(values = y_all_nt, id = factor(rep(1:np, each = nt))
                     , time = factor(rep(1:nt, np)))
-tmp <- dcast(y_all, id ~ time, value.var = "values")
-lv_all <- data.frame(values = lv_all, id = factor(rep(1:np, each = nt))
+y_all_wide <- dcast(y_all, id ~ time, value.var = "values")
+lv_all_wide <- data.frame(values = lv_all, id = factor(rep(1:np, each = nt))
                     , time = factor(rep(1:nt, np)))
+
+write.table(y_all_wide[, 2:ncol(y_all_wide)], file = paste0("data/work/", model_name, ".dat")
+          , row.names = FALSE
+          , col.names = FALSE
+          , sep = ",")
 
 

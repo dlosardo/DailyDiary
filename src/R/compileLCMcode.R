@@ -3,7 +3,7 @@
 ##########################################################################
 
 
-var_names = paste(c("Y"), combine, sep = "")
+labs = paste(c("Y"), combine, sep = "")
 ints = paste(c(labs), "@1", sep = "")
 slps = paste(c(labs),"@",sep="")
 slps = paste(c(slps),(combine-1),sep="")
