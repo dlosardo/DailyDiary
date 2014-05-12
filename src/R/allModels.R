@@ -40,7 +40,7 @@ cd ", dir_in, "\n
 }
 
 #constants 
-nlv <- 2
+nlv <- 3
 ny <- 1
 nx <- 0
 # lv covs, measurement covs 
