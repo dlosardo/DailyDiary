@@ -1,20 +1,19 @@
 #!/usr/bin/env Rscript
 #
-library(reshape2)
 
-create_mplus_script <- function(model_type, estimator, items, item_groups = 0, ncategories = 4){
-  to_save_dir <- "data/work/mplus"
+create_mplus_script <- function(model_type, data_type, estimator, items, item_groups = 0, ncategories = 4){
+  to_save_dir <- "."
   input_dir <- "src/mplus"
-  data_dir <- "data/work/prepped"
+  data_dir <- "../../../data/work/prepped"
   
   identifier <- model_type
   file_model <- paste(input_dir, "/", identifier, ".inp", sep = "")
   
-  demo_vars <- ""
+  demo_vars <- "id"
   
   
   title <- paste("title: ", identifier, ";\n")
-  data <- get_data_command(data_dir, model_type)
+  data <- get_data_command(data_dir, data_type)
   variables <- get_variable_command("CONTINUOUS", demo_vars, items)
   analysis <- get_analysis_command(model_type, estimator)
   model <- get_model_command(model_type, items, ncategories, item_groups)
@@ -25,8 +24,8 @@ create_mplus_script <- function(model_type, estimator, items, item_groups = 0, n
   cat(title,  file = file_model, append = FALSE, sep="")
   cat(data, variables, analysis, model, output, savedata, file = file_model, fill = TRUE, append = TRUE)
 }
-get_data_command <- function(data_dir, model_type){
-  data_file_name <- sprintf("%s/%s.dat", data_dir, model_type)
+get_data_command <- function(data_dir, data_type){
+  data_file_name <- sprintf("%s/%s.dat", data_dir, data_type)
   data_file <- paste("\ndata: file = ", shQuote(data_file_name), ";\n")
   return(data_file)
 }
@@ -118,16 +117,48 @@ get_model_command <- function(model_type, items, ncategories, item_groups){
     for (i in 1:(ngroups - 1)){
       covs <- c(covs, paste("\t", fs[i], " with ", fs[(i+1):(length(fs))], ";\n"))
     }
-    model <- paste0(c("\nmodel: \n" ,model, covs))
+    model <- paste0(c("\nmodel: \n", model, covs))
   }else if(model_type == "LCM") {
     nt <- max(grep("[0-9]+", items))
     model <- c(
-      paste0("int by ", items, "@1;\n"),
-      paste0("slp by ", items, "@", 0:(nt-1), ";\n"),
+      paste0("int by ", paste0(items, "@1", collapse = " "), ";\n"),
+      paste0("slp by ", paste0(items, "@", 0:(nt-1), collapse =" "), ";\n"),
       paste0("int with slp;\nint slp;\n[int slp];\n"),
-      paste0("[", items, "@0];\n"),
-      paste0(items, ";\n"))
+      paste0("[", paste0(items, "@0", collapse = " "), "];\n"),
+      paste0(paste0(items, collapse = " "), ";\n"))
+    model <- paste0(c("\nmodel: \n", model))
+  }else if(model_type == "AR"){
+    nt <- max(grep("[0-9]+", items))
+    model <- c(
+      paste0("!initial status\n inity by ", items[1], "@0;\n inity*;\n [inity*]; \n ", items[1], " on inity@1;"),
+      sapply(2:nt, function(x) paste0(items[x], " on ", items[x - 1], " (1);\n")),
+      paste0("ksi", 1:nt, " by ", items[1:nt], "@1;\n"),
+      paste0("ksi", 1, "-ksi", nt, " (2);\n"),
+      paste0(items[1], "-", items[nt], "@0;\n"),
+      paste0("[", items[1], "-", items[nt], "@0];\n")
+    )
+    covs <- NULL
+    for (i in 1:(nt - 1)){
+      covs <- c(covs, paste0("ksi", i, " with ksi", (i+1):(nt), "@0;\n"))
+    }
+    covs <- c(covs, paste0("inity with ksi", 1:nt, "@0;\n"))
+    model <- paste0(c("\nmodel: \n", model, covs))
     
+  }else if(model_type == "MA"){
+    model <- c(
+      paste0("!initial status\n inity by ", items[1], "@0;\n inity*;\n [inity*]; \n ", items[1], " on inity@1;"),
+      paste0("ksi", 1:nt, " by ", items[1:nt], "@1;\n"),
+      sapply(2:nt, function(x) paste0(items[x], " on ksi", x - 1, " (1);\n")),
+      paste0("ksi", 1, "-ksi", nt, " (2);\n"),
+      paste0(items[1], "-", items[nt], "@0;\n"),
+      paste0("[", items[1], "-", items[nt], "@0];\n")
+    )
+    covs <- NULL
+    for (i in 1:(nt - 1)){
+      covs <- c(covs, paste0("ksi", i, " with ksi", (i+1):(nt), "@0;\n"))
+    }
+    covs <- c(covs, paste0("inity with ksi", 1:nt, "@0;\n"))
+    model <- paste0(c("\nmodel: \n", model, covs))
   }else {
     model = ""
   } 
@@ -149,5 +180,5 @@ get_savedata_command <- function(model_type, identifier, to_save_dir){
     
   }
   savedata <- paste0("\nsavedata: \n", results, fscores, probs, estimates)
-  savedata
+  return(savedata)
 }

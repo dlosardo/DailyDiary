@@ -1,0 +1,30 @@
+title: MA ;
+
+data: file = " data/work/MA.dat ";
+
+variable:  names = id y1-y14;
+missing=.;
+usevariables = y1-y14 ;
+
+model: 
+
+y2 on y1*;
+y3 on y2*;
+y4 on y3*;
+y5 on y4*;
+y6 on y5*;
+y7 on y6*;
+y8 on y7*;
+y9 on y8*;
+y10 on y9*;
+y11 on y10*;
+y12 on y11*;
+y13 on y12*;
+y14 on y13*;
+
+y1-y14*;
+[y1-y14@0];
+
+
+
+savedata: results = data/work/mplus/results.dat;

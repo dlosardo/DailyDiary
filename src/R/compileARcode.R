@@ -7,7 +7,7 @@ cat(paste("title: AR ;"),
 cat(paste("\n
 data: file = \"",data,"\";
 
-variable:  names = y1-y14 id;
+variable:  names = id y1-y14;
 missing=.;
 usevariables = y1-y14 ;
 
@@ -73,5 +73,5 @@ ksi1-ksi14 (2);
 y1-y14@0;
 
 
-savedata: results = results.dat;
+savedata: results = data/work/mplus/ARresults.dat;
 "),file=inp,append=TRUE)

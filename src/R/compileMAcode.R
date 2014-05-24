@@ -7,7 +7,7 @@ cat(paste("title: MA ;"),
 cat(paste("\n
 data: file = \"",data,"\";
 
-variable:  names = y1-y14 id;
+variable:  names = id y1-y14;
 missing=.;
 usevariables = y1-y14 ;
 
