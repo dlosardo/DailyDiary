@@ -1,22 +1,22 @@
 #To simulate data for a model formulated in the state-space framework.
 
 # innov z residuals e
-lv = matrix(0, ntt, nlv)
+lv = matrix(0, ntt, dtrans)
 y = matrix(0, ntt, ny)
 x = matrix(0, ntt, nx)
 y_all_ntt = matrix(0, ntt*np, ny)
-lv_all = matrix(0, nt*np, nlv)
+lv_all = matrix(0, nt*np, dtrans)
 y_all_nt = matrix(0, nt*np, ny)
 
 for (i in 1:np){
-  init = t(lv0) + rnorm(nlv)%*%chol_lv_covs0
+  init = t(lv0) + rnorm(dtrans)%*%chol_lv_covs0
   lv[1, ] = t(init)
   error = t(rnorm(1)%*%chol_measurement_covs[1, 1])
   cur_y = measurement_intercepts[1] + lv_coef[1, ]%*%lv[1, ] + error
   y[1, 1] = cur_y
   for (t in 2:ntt){
     ifelse(t > nt, t_ <- 2, t_ <- t)
-    disturbance = Rmat%*%matrix(rnorm(unique_lv)%*%chol_lv_covs, unique_lv, 1)
+    disturbance = Rmat%*%matrix(rnorm(nlv)%*%chol_lv_covs, nlv, 1)
     error = t(rnorm(1)%*%chol_measurement_covs[t_, t_])
     prev_lv = as.matrix(lv[t - 1, ])
     cur_lv = lv_intercepts + lv_transition%*%prev_lv + disturbance

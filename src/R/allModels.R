@@ -22,14 +22,13 @@ data_generating_models = c(3)
 estimated_models = c(1,3)
 # features of models
 INIT <- TRUE # if true, use exact initial condition
-nlv <- 2 # number of latent variables in transition matrix
+nlv <- 1 # number of latent variables
 ny <- 1 # number of sets of observed variables
 nx <- 0 # number of fixed regressors (covariates)
-unique_lv<-1 # number of latent variables in measurement model (1 for MA)
-
+dtrans <- 2 # number of states in transition matrix (MA(1) has 2)
 # population values
 pop_values_all <- list(LCM = list(c(.3, .05, .1), c(1.2, 1.2, 1.2, 1.2, 1.2, 1.2), c(1,0.02))
-                   , AR = list(c(.7), c(1))
+                   , AR = list(c(.7, .3), c(1))
                    , MA = list(c(.7), c(1)))
 # MC conditions
 time_points = c(14) #Number of time points
@@ -94,8 +93,8 @@ for (t in 1:length(time_points)){
             system(paste(shell_file), wait = TRUE)
             output <- read_mplus_output(model_est_name)[[1]]
             error_flag = 0
-  					#the following checks to see if there were errors and values were not saved
-  					error_terms = output[output %in% c("not", "terminate", "normally.")]
+            # the following checks to see if there were errors and values were not saved
+            error_terms = output[output %in% c("not", "terminate", "normally.")]
   					if (length(error_terms) == 3) error_flag = 1
   				  error_terms_1 = output[output %in% c("ERROR")]
   					if (length(error_terms_1) == 1) error_flag = 2
@@ -103,8 +102,9 @@ for (t in 1:length(time_points)){
 						results <- data.frame(nt = nt, np = np, dg = model_name, est = model_est_name
 						                      , rep = run, design = d, error_flag = error_flag, t(tmp_results))
 						all_results <- rbind.fill(all_results, results)
-  				} # mest loop
-  			}#d loop
+            unique_dim_names <- getResultsAfterParms(output)
+  				}# mest loop
+  			}# d loop
 			}# run loop
 		}# m loop
 	}# s loop
