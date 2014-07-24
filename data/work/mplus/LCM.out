@@ -1,18 +1,18 @@
 Mplus VERSION 7 (Mac)
 MUTHEN & MUTHEN
-06/08/2014   9:31 AM
+07/08/2014   9:30 PM
 
 INPUT INSTRUCTIONS
 
   title:  LCM ;
 
-  data: fi     Beginning Time:  09:31:06
-        Ending Time:  09:31:06
+  data: fi     Beginning Time:  21:30:12
+        Ending Time:  21:30:12
        Elapsed Time:  00:00:00
 
      Output saved in 'LCM.out'.
-variables = y1 y2 y3 y4 y5 y6 y7 y8 y9 y10 y11
-  y12 y13 y14 ;
+ariables = y1 y2 y3 y4 y5 y6 y7 y8 y9 y10 y11 y12
+  y13 y14 ;
     	missing = .;
 
   analysis:  estimator = ML;
@@ -52,7 +52,7 @@ LCM ;
 SUMMARY OF ANALYSIS
 
 Number of groups                                                 1
-Number of observations                                         150
+Number of observations                                         500
 
 Number of dependent variables                                   14
 Number of independent variables                                  0
@@ -78,7 +78,7 @@ Maximum number of iterations for H1                           2000
 Convergence criterion for H1                             0.100D-03
 
 Input data file(s)
-  ../../../data/work/prepped/MA.dat
+  ../../../data/work/prepped/LCM.dat
 
 Input data format  FREE
 
@@ -149,42 +149,42 @@ Number of Free Parameters                       19
 
 Loglikelihood
 
-          H0 Value                       -3361.818
-          H1 Value                       -2999.524
+          H0 Value                      -11788.556
+          H1 Value                      -11724.316
 
 Information Criteria
 
-          Akaike (AIC)                    6761.635
-          Bayesian (BIC)                  6818.837
-          Sample-Size Adjusted BIC        6758.706
+          Akaike (AIC)                   23615.112
+          Bayesian (BIC)                 23695.190
+          Sample-Size Adjusted BIC       23634.883
             (n* = (n + 2) / 24)
 
 Chi-Square Test of Model Fit
 
-          Value                            724.588
+          Value                            128.481
           Degrees of Freedom                   100
-          P-Value                           0.0000
+          P-Value                           0.0290
 
 RMSEA (Root Mean Square Error Of Approximation)
 
-          Estimate                           0.204
-          90 Percent C.I.                    0.190  0.218
-          Probability RMSEA <= .05           0.000
+          Estimate                           0.024
+          90 Percent C.I.                    0.008  0.035
+          Probability RMSEA <= .05           1.000
 
 CFI/TLI
 
-          CFI                                0.097
-          TLI                                0.178
+          CFI                                0.997
+          TLI                                0.997
 
 Chi-Square Test of Model Fit for the Baseline Model
 
-          Value                            782.413
+          Value                           8682.402
           Degrees of Freedom                    91
           P-Value                           0.0000
 
 SRMR (Standardized Root Mean Square Residual)
 
-          Value                              0.147
+          Value                              0.021
 
 
 
@@ -226,11 +226,11 @@ MODEL RESULTS
     Y14               13.000      0.000    999.000    999.000
 
  INT      WITH
-    SLP               -0.042      0.010     -4.005      0.000
+    SLP                0.048      0.011      4.377      0.000
 
  Means
-    INT                0.026      0.071      0.369      0.712
-    SLP               -0.001      0.009     -0.170      0.865
+    INT                0.994      0.034     29.418      0.000
+    SLP                0.011      0.015      0.761      0.447
 
  Intercepts
     Y1                 0.000      0.000    999.000    999.000
@@ -249,29 +249,29 @@ MODEL RESULTS
     Y14                0.000      0.000    999.000    999.000
 
  Variances
-    INT                0.396      0.091      4.363      0.000
-    SLP                0.006      0.001      4.136      0.000
+    INT                0.258      0.037      6.984      0.000
+    SLP                0.100      0.007     15.011      0.000
 
  Residual Variances
-    Y1                 1.646      0.217      7.580      0.000
-    Y2                 1.464      0.194      7.527      0.000
-    Y3                 1.286      0.167      7.684      0.000
-    Y4                 1.318      0.166      7.945      0.000
-    Y5                 1.195      0.148      8.060      0.000
-    Y6                 1.242      0.151      8.233      0.000
-    Y7                 1.348      0.162      8.329      0.000
-    Y8                 1.461      0.174      8.372      0.000
-    Y9                 1.219      0.147      8.290      0.000
-    Y10                1.212      0.147      8.231      0.000
-    Y11                1.362      0.168      8.091      0.000
-    Y12                1.188      0.152      7.796      0.000
-    Y13                1.292      0.165      7.831      0.000
-    Y14                1.152      0.153      7.538      0.000
+    Y1                 1.260      0.089     14.108      0.000
+    Y2                 1.186      0.083     14.338      0.000
+    Y3                 1.292      0.088     14.738      0.000
+    Y4                 1.195      0.081     14.841      0.000
+    Y5                 1.085      0.073     14.832      0.000
+    Y6                 1.213      0.081     14.947      0.000
+    Y7                 1.117      0.075     14.839      0.000
+    Y8                 1.195      0.081     14.767      0.000
+    Y9                 1.346      0.092     14.697      0.000
+    Y10                1.232      0.086     14.299      0.000
+    Y11                1.171      0.085     13.849      0.000
+    Y12                1.192      0.089     13.441      0.000
+    Y13                1.121      0.088     12.709      0.000
+    Y14                1.206      0.098     12.343      0.000
 
 
 QUALITY OF NUMERICAL RESULTS
 
-     Condition Number for the Information Matrix              0.198E-05
+     Condition Number for the Information Matrix              0.449E-02
        (ratio of smallest to largest eigenvalue)
 
 
@@ -423,11 +423,11 @@ TECHNICAL 1 OUTPUT
            THETA
               Y1            Y2            Y3            Y4            Y5
               ________      ________      ________      ________      ________
- Y1             0.895
- Y2             0.000         0.959
- Y3             0.000         0.000         0.816
- Y4             0.000         0.000         0.000         0.784
- Y5             0.000         0.000         0.000         0.000         0.698
+ Y1             0.742
+ Y2             0.000         0.825
+ Y3             0.000         0.000         1.061
+ Y4             0.000         0.000         0.000         1.299
+ Y5             0.000         0.000         0.000         0.000         1.676
  Y6             0.000         0.000         0.000         0.000         0.000
  Y7             0.000         0.000         0.000         0.000         0.000
  Y8             0.000         0.000         0.000         0.000         0.000
@@ -442,11 +442,11 @@ TECHNICAL 1 OUTPUT
            THETA
               Y6            Y7            Y8            Y9            Y10
               ________      ________      ________      ________      ________
- Y6             0.675
- Y7             0.000         0.702
- Y8             0.000         0.000         0.774
- Y9             0.000         0.000         0.000         0.670
- Y10            0.000         0.000         0.000         0.000         0.661
+ Y6             2.379
+ Y7             0.000         2.881
+ Y8             0.000         0.000         3.374
+ Y9             0.000         0.000         0.000         4.448
+ Y10            0.000         0.000         0.000         0.000         5.279
  Y11            0.000         0.000         0.000         0.000         0.000
  Y12            0.000         0.000         0.000         0.000         0.000
  Y13            0.000         0.000         0.000         0.000         0.000
@@ -456,10 +456,10 @@ TECHNICAL 1 OUTPUT
            THETA
               Y11           Y12           Y13           Y14
               ________      ________      ________      ________
- Y11            0.786
- Y12            0.000         0.724
- Y13            0.000         0.000         0.701
- Y14            0.000         0.000         0.000         0.648
+ Y11            6.036
+ Y12            0.000         7.234
+ Y13            0.000         0.000         8.830
+ Y14            0.000         0.000         0.000         9.565
 
 
            ALPHA
@@ -491,15 +491,15 @@ SAMPLE STATISTICS FOR ESTIMATED FACTOR SCORES
            Means
               INT           INT_SE        SLP           SLP_SE
               ________      ________      ________      ________
- 1              0.026         0.433        -0.001         0.053
+ 1              0.994         0.352         0.011         0.053
 
 
            Covariances
               INT           INT_SE        SLP           SLP_SE
               ________      ________      ________      ________
- INT            0.209
+ INT            0.134
  INT_SE         0.000         0.000
- SLP           -0.022         0.000         0.003
+ SLP            0.061         0.000         0.097
  SLP_SE         0.000         0.000         0.000         0.000
 
 
@@ -508,7 +508,7 @@ SAMPLE STATISTICS FOR ESTIMATED FACTOR SCORES
               ________      ________      ________      ________
  INT            1.000
  INT_SE       999.000         1.000
- SLP           -0.896       999.000         1.000
+ SLP            0.539       999.000         1.000
  SLP_SE       999.000       999.000       999.000         1.000
 
 
@@ -582,8 +582,8 @@ SAVEDATA INFORMATION
     ./estimates/estimates.LCM.dat
   Save format      Free
 
-     Beginning Time:  09:31:06
-        Ending Time:  09:31:06
+     Beginning Time:  21:30:12
+        Ending Time:  21:30:12
        Elapsed Time:  00:00:00
 
 

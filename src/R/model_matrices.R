@@ -37,20 +37,21 @@ get_model_matrices_lcm <- function(ny, nt, nlv, pop_values){
 }
 
 #for AR(1)
-get_model_matrices_ar <- function(ny, nt, nlv, pop_values, dtrans, nlag){
-  I = diag(1, dtrans - 1)
-  lower_trans <- matrix(cbind(diag(1, dtrans - 1), rep(0, dtrans - 1)), dtrans - 1, dtrans)
+get_model_matrices_ar <- function(ny, nt, nlv, pop_values, nstates, nlag = 1){
+  I = diag(1, nstates - 1)
+  lower_trans <- matrix(cbind(diag(1, nstates - 1), rep(0, nstates - 1)), nstates - 1, nstates)
   ## lv_transition <- vector_to_non_symmetric_square_matrix(pop_values[[1]])
   lv_transition <- rbind(pop_values[[1]], lower_trans)
-  lv_covs <- lv_cov_matrix(nlv)
-  r_vals <- c(1, rep(0, dtrans - 1))
-  Rmat <- matrix(r_vals, nrow = dtrans)
-  lv_covs0 <- initial_cov_matrix(dtrans, lv_transition, Rmat, lv_covs)
-  lv0 = matrix(0, dtrans, 1, byrow=T)
+  lv_covs <- lv_cov_matrix(pop_values[[2]])
+  r_vals <- c(1, rep(0, nstates - 1))
+  Rmat <- matrix(r_vals, nrow = nstates)
+  state_covs <- Rmat%*%lv_covs%*%t(Rmat)
+  lv_covs0 <- initial_cov_matrix(nstates, lv_transition, Rmat, lv_covs)
+  lv0 = matrix(0, nstates, 1, byrow=T)
   measurement_intercepts = matrix(rep(0, ny*nt), ny*nt, 1, byrow = TRUE)
   measurement_covs = diag(0, ny*nt, ny*nt)
-  lv_coef <- matrix(1, nt, nlv)
-  lv_intercepts = matrix(rep(0, nlv), nlv, 1, byrow = TRUE)
+  lv_coef <- matrix(c(1, rep(0, nstates - 1)), nt, nstates, byrow = TRUE)
+  lv_intercepts = matrix(rep(0, nstates), nstates, 1, byrow = TRUE)
   return(list(lv_coef = lv_coef, lv_covs = lv_covs, lv_transition = lv_transition
               , measurement_covs = measurement_covs, lv_intercepts = lv_intercepts
               , measurement_intercepts = measurement_intercepts, lv0 = lv0
@@ -69,32 +70,42 @@ get_model_matrices_ar <- function(ny, nt, nlv, pop_values, dtrans, nlag){
 # a_0 = [y_0, beta*v_0]
 # y_0 = beta*y_-1 + v_0
 
-get_model_matrices_ma <- function(ny, nt, nlv, pop_values){
-  lv_transition <- matrix(c(0, 1, 0, 0), dtrans, dtrans, byrow=T)
-  Rmat <- matrix(c(1, pop_values[[1]]), dtrans, 1)
+get_model_matrices_ma <- function(ny, nt, nlv, pop_values, nstates){
+  lv_transition <- matrix(c(0, 1, 0, 0), nstates, nstates, byrow=T)
+  Rmat <- matrix(c(1, pop_values[[1]]), nstates, 1)
   lv_covs <- matrix(pop_values[[2]], nlv, nlv)
-  lv_covs0 <- initial_cov_matrix(dtrans, lv_transition, Rmat, lv_covs)
-  lv0 = matrix(0, dtrans, 1, byrow=T)
+  lv_covs0 <- initial_cov_matrix(nstates, lv_transition, Rmat, lv_covs)
+  lv0 = matrix(0, nstates, 1, byrow=T)
   measurement_intercepts = matrix(rep(0, ny*nt), ny*nt, 2, byrow = TRUE)
   measurement_covs = diag(0, ny*nt, ny*nt)
   lv_coef <- matrix(rep(c(1, 0), nt), nt, 2, byrow=T)
-  lv_intercepts = matrix(rep(0, dtrans), dtrans, 1, byrow = TRUE)
+  lv_intercepts = matrix(rep(0, nstates), nstates, 1, byrow = TRUE)
   return(list(lv_coef = lv_coef, lv_covs = lv_covs, lv_transition = lv_transition
               , measurement_covs = measurement_covs, lv_intercepts = lv_intercepts
               , measurement_intercepts = measurement_intercepts, lv0 = lv0
               , lv_covs0 = lv_covs0, Rmat = Rmat))
 }
 
-get_model_matrices_arma <- function(ny, nt, nlv, pop_values){
-  lv_transition <- matrix(c(0, 1, 0, 0), 2, 2, byrow=T)
-  Rmat <- matrix(c(1, pop_values[[1]]), 2, 1)
-  lv_covs <- matrix(pop_values[[2]], 1, 1)
-  lv_covs0 <- initial_cov_matrix(nlv, lv_transition, Rmat, lv_covs)
+arma_trans_first_row <- function(pop_values){
+  if (length(pop_values) == 1){
+    return(c(pop_values, 0))
+  } else{
+    return(pop_values)
+  }
+}
+get_model_matrices_arma <- function(ny, nt, nlv, pop_values, nstates, p, q){
+  m <- max(p, q + 1)
+  lv_coef <- matrix(c(1, rep(0, m - 1)), nt, m, byrow=T)
+  lv_transition <- cbind(arma_trans_first_row(pop_values[[1]])
+                         , rbind(diag(1, m - 1), rep(0, m - 1)))
+  Rmat <- matrix(c(1, pop_values[[2]]), 2, 1)
+  lv_covs <- matrix(pop_values[[3]], 1, 1)
+  lv_covs0 <- initial_cov_matrix(nstates, lv_transition, Rmat, lv_covs)
   lv0 = matrix(0, 2, 1, byrow=T)
   measurement_intercepts = matrix(rep(0, ny*nt), ny*nt, 2, byrow = TRUE)
   measurement_covs = diag(0, ny*nt, ny*nt)
   lv_coef <- matrix(rep(c(1, 0), nt), nt, 2, byrow=T)
-  lv_intercepts = matrix(rep(0, dtrans), dtrans, 1, byrow = TRUE)
+  lv_intercepts = matrix(rep(0, nstates), nstates, 1, byrow = TRUE)
   return(list(lv_coef = lv_coef, lv_covs = lv_covs, lv_transition = lv_transition
               , measurement_covs = measurement_covs, lv_intercepts = lv_intercepts
               , measurement_intercepts = measurement_intercepts, lv0 = lv0
@@ -102,13 +113,13 @@ get_model_matrices_arma <- function(ny, nt, nlv, pop_values){
 }
 
 if (model_name == "AR"){
-  matrices <- get_model_matrices_ar(ny, nt, nlv, pop_values)
+  matrices <- get_model_matrices_ar(ny, nt, nlv, pop_values, nstates)
 } else if (model_name == "MA"){
-  matrices <- get_model_matrices_ma(ny, nt, nlv, pop_values)
+  matrices <- get_model_matrices_ma(ny, nt, nlv, pop_values, nstates)
 } else if (model_name == "LCM"){
   matrices <- get_model_matrices_lcm(ny, nt, nlv, pop_values)
 } else if (model_name == "ARMA"){
-  matrices <- get_model_matrices_arma(ny, nt, nlv, pop_values)
+  matrices <- get_model_matrices_arma(ny, nt, nlv, pop_values, nstates, p, q)
 }
 
 lv_intercepts <- matrices[["lv_intercepts"]]

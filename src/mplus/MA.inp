@@ -2,10 +2,10 @@ title:  MA ;
 
 data: file =  '../../../data/work/prepped/MA.dat' ;
  
-variable: names = id y1 y2 y3 y4 
-y5 y6 y7 y8 y9 y10 y11 y12 y13 y14 ;
- 	usevariables = y1 y2 y3 y4 y5 y6 y7 y8 y9 y10 y11 
-y12 y13 y14 ;
+variable: names =  y1 y2 y3 y4 y5 
+y6 y7 y8 y9 y10 y11 y12 y13 y14 ;
+ 	usevariables = y1 y2 y3 y4 y5 y6 y7 y8 y9 y10 y11 y12 
+y13 y14 ;
   	missing = .;
  
 analysis:  estimator = ML;
@@ -15,7 +15,7 @@ model:
 !initial status
  inity by y1@0;
  inity*;
- [inity*]; 
+ [inity@0]; 
  y1 on inity@1; ksi1 by y1@1;
  
 ksi2 by y2@1;

@@ -42,8 +42,12 @@ transition_matrix <- function(values){
   vector_to_non_symmetric_square_matrix(values)
 }
 
-initial_cov_matrix <- function(nlv, Tmat, Rmat, Vmat){
-  I <- diag(1, nlv^2)
-  vals <- solve(I - (Tmat%x%Tmat))%*%matrix(vecop(Rmat%*%Vmat%*%t(Rmat)), nlv^2, 1)
-  return(matrix(c(vals), nlv, nlv, byrow=T))
+initial_cov_matrix <- function(nstates, Tmat, Rmat, Vmat){
+  I <- diag(1, nstates^2)
+  vals <- solve(I - (Tmat%x%Tmat))%*%matrix(vecop(Rmat%*%Vmat%*%t(Rmat)), nstates^2, 1)
+  return(matrix(c(vals), nstates, nstates, byrow=T))
+}
+
+get_ar_lags <- function(y, items, nt){
+  sapply(y:nt, function(x) paste0(items[x], " on ", items[x - (y - 1)], " (", y - 1, ");\n"))
 }

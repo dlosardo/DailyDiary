@@ -9,7 +9,7 @@ create_mplus_script <- function(model_type, data_type, estimator, items, item_gr
   identifier <- model_type
   file_model <- paste(input_dir, "/", identifier, ".inp", sep = "")
   
-  demo_vars <- "id"
+  demo_vars <- ""
   
   
   title <- paste("title: ", identifier, ";\n")
@@ -130,10 +130,10 @@ get_model_command <- function(model_type, items, ncategories, item_groups){
   }else if(model_type == "AR"){
     nt <- max(grep("[0-9]+", items))
     model <- c(
-      paste0("!initial status\n inity by ", items[1], "@0;\n inity*;\n [inity*]; \n ", items[1], " on inity@1;"),
-      sapply(2:nt, function(x) paste0(items[x], " on ", items[x - 1], " (1);\n")),
+      paste0("!initial status\n inity by ", items[1], "@0;\n inity*;\n [inity@0]; \n ", items[1], " on inity@1;"),
+      unlist(sapply(1:nstates, function(s) get_ar_lags(s + 1, items, nt))),
       paste0("ksi", 1:nt, " by ", items[1:nt], "@1;\n"),
-      paste0("ksi", 1, "-ksi", nt, " (2);\n"),
+      paste0("ksi", 1, "-ksi", nt, " (svars);\n"),
       paste0(items[1], "-", items[nt], "@0;\n"),
       paste0("[", items[1], "-", items[nt], "@0];\n")
     )
@@ -146,12 +146,18 @@ get_model_command <- function(model_type, items, ncategories, item_groups){
     
   }else if(model_type == "MA"){
     model <- c(
-      paste0("!initial status\n inity by ", items[1], "@0;\n inity*;\n [inity*]; \n ", items[1], " on inity@1;"),
+      paste0("!initial status\n inity by ", items[1], "@0;\n inity*;\n [inity@0]; \n ", items[1], " on inity@1;"),
+      
+      #paste0("!initial status\n inity by ", items[1], "@0;\n inity*;\n [inity*]; \n ", items[1], " on inity@1;"),
+      
+      
       paste0("ksi", 1:nt, " by ", items[1:nt], "@1;\n"),
       sapply(2:nt, function(x) paste0(items[x], " on ksi", x - 1, " (1);\n")),
       paste0("ksi", 1, "-ksi", nt, " (2);\n"),
       paste0(items[1], "-", items[nt], "@0;\n"),
       paste0("[", items[1], "-", items[nt], "@0];\n")
+      #paste0("inity with ", items[1], "*;\n")
+      #paste0(items[1], "*;\n [", items[1], "*];\n")
     )
     covs <- NULL
     for (i in 1:(nt - 1)){
@@ -159,6 +165,24 @@ get_model_command <- function(model_type, items, ncategories, item_groups){
     }
     covs <- c(covs, paste0("inity with ksi", 1:nt, "@0;\n"))
     model <- paste0(c("\nmodel: \n", model, covs))
+  } else if (model_type == "ARMA"){
+    nt <- max(grep("[0-9]+", items))
+    model <- c(
+      paste0("!initial status\n inity by ", items[1], "@0;\n inity*;\n [inity@0]; \n ", items[1], " on inity@1;"),
+      unlist(sapply(1:p, function(s) get_ar_lags(s + 1, items, nt))),
+      paste0("ksi", 1:nt, " by ", items[1:nt], "@1;\n"),
+      paste0("ksi", 1, "-ksi", nt, " (svars);\n"),
+      paste0(items[1], "-", items[nt], "@0;\n"),
+      paste0("[", items[1], "-", items[nt], "@0];\n"),
+      sapply(2:nt, function(x) paste0(items[x], " on ksi", x - 1, " (ma);\n"))
+    )
+    covs <- NULL
+    for (i in 1:(nt - 1)){
+      covs <- c(covs, paste0("ksi", i, " with ksi", (i+1):(nt), "@0;\n"))
+    }
+    covs <- c(covs, paste0("inity with ksi", 1:nt, "@0;\n"))
+    model <- paste0(c("\nmodel: \n", model, covs))
+    
   }else {
     model = ""
   } 

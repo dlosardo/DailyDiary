@@ -12,27 +12,31 @@ source('src/R/compileMplusScript.R')
 source('src/R/diary_designs.R')
 
 # CONSTANTS
-nreps = 10 #number of Monte Carlo runs
+nreps = 1 #number of Monte Carlo runs
 ##Ordering of Models
 ### 1 - LCM
 ### 2 - AR
 ### 3 - MA
-model_names = c("LCM", "AR", "MA")
-data_generating_models = c(3)
-estimated_models = c(1,3)
+### 4 - ARMA
+model_names = c("LCM", "AR", "MA", "ARMA")
+data_generating_models = c(4)
+estimated_models = c(4)
 # features of models
 INIT <- TRUE # if true, use exact initial condition
 nlv <- 1 # number of latent variables
 ny <- 1 # number of sets of observed variables
 nx <- 0 # number of fixed regressors (covariates)
-dtrans <- 2 # number of states in transition matrix (MA(1) has 2)
+nstates <- 2 # number of states in transition matrix (MA(1) has 2)
+p <- 1 # number of AR lags
+q <- 1 # number of MA lags
 # population values
 pop_values_all <- list(LCM = list(c(.3, .05, .1), c(1.2, 1.2, 1.2, 1.2, 1.2, 1.2), c(1,0.02))
-                   , AR = list(c(.7, .3), c(1))
-                   , MA = list(c(.7), c(1)))
+                   , AR = list(c(.7), c(1))
+                   , MA = list(c(.7), c(1))
+                   , ARMA = list(c(.7), c(.3), c(1)))
 # MC conditions
 time_points = c(14) #Number of time points
-sample_sizes = c(300) #Number of participants
+sample_sizes = c(500) #Number of participants
 ######Ordering of Daily Diary Designs
 ### 1 - Complete Data
 ### 2 - One-Day Interval Design
@@ -57,7 +61,7 @@ for (t in 1:length(time_points)){
 		for (m in 1:length(data_generating_models)){
 			cur_model = data_generating_models[m]
       model_name <- model_names[cur_model]
-      pop_values <- pop_values_all[[grep(model_name, names(pop_values_all))]]
+      pop_values <- pop_values_all[[match(model_name, names(pop_values_all))]]
 			for (run in 1:nreps){
         source("src/R/model_matrices.R")
         source("src/R/simulate_data.R")

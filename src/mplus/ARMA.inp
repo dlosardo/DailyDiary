@@ -1,11 +1,11 @@
-title:  AR ;
+title:  ARMA ;
 
-data: file =  '../../../data/work/prepped/AR.dat' ;
+data: file =  '../../../data/work/prepped/ARMA.dat' ;
  
-variable: names =  y1 y2 y3 y4 y5 
-y6 y7 y8 y9 y10 y11 y12 y13 y14 ;
- 	usevariables = y1 y2 y3 y4 y5 y6 y7 y8 y9 y10 y11 y12 
-y13 y14 ;
+variable: names =  y1 y2 y3 y4 
+y5 y6 y7 y8 y9 y10 y11 y12 y13 y14 ;
+ 	usevariables = y1 y2 y3 y4 y5 y6 y7 y8 y9 y10 y11 
+y12 y13 y14 ;
   	missing = .;
  
 analysis:  estimator = ML;
@@ -52,6 +52,22 @@ ksi10 by y10@1;
 ksi1-ksi14 (svars);
  y1-y14@0;
  [y1-y14@0];
+ y2 on ksi1 (ma);
+ y3 on ksi2 (ma);
+ 
+y4 on ksi3 (ma);
+ y5 on ksi4 (ma);
+ y6 on ksi5 (ma);
+ y7 on ksi6 (ma);
+ y8 on ksi7 (ma);
+ 
+y9 on ksi8 (ma);
+ y10 on ksi9 (ma);
+ y11 on ksi10 (ma);
+ y12 on ksi11 (ma);
+ 
+y13 on ksi12 (ma);
+ y14 on ksi13 (ma);
  ksi1 with ksi2@0;
  ksi1 with ksi3@0;
  
@@ -188,8 +204,8 @@ output:tech1;
  
 
 savedata: 
-results= './item_parameters/results.AR.dat';
-file= './factor_scores/fscores.AR.dat';
+results= './item_parameters/results.ARMA.dat';
+file= './factor_scores/fscores.ARMA.dat';
 save = fscores;
-estimates= './estimates/estimates.AR.dat';
+estimates= './estimates/estimates.ARMA.dat';
 
