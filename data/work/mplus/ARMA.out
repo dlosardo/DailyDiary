@@ -1,14 +1,14 @@
 Mplus VERSION 7 (Mac)
 MUTHEN & MUTHEN
-07/24/2014   3:22 PM
+07/24/2014  11:11 PM
 
 INPUT INSTRUCTIONS
 
   title:  ARMA ;
 
-  data: fi     Beginning Time:  15:22:35
-        Ending Time:  15:22:35
-       Elapsed Time:  00:00:00
+  data: fi     Beginning Time:  23:11:33
+        Ending Time:  23:11:34
+       Elapsed Time:  00:00:01
 
      Output saved in 'ARMA.out'.
 ariables = y1 y2 y3 y4 y5 y6 y7 y8 y9 y10 y11
@@ -2189,9 +2189,9 @@ SAVEDATA INFORMATION
     ./estimates/estimates.ARMA.dat
   Save format      Free
 
-     Beginning Time:  15:22:35
-        Ending Time:  15:22:35
-       Elapsed Time:  00:00:00
+     Beginning Time:  23:11:33
+        Ending Time:  23:11:34
+       Elapsed Time:  00:00:01
 
 
 

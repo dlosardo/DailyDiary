@@ -10,33 +10,35 @@ source('src/R/mplus_functions.R')
 source('src/R/matrix_functions.R')
 source('src/R/compileMplusScript.R')
 source('src/R/diary_designs.R')
+source("src/R/model_matrices.R")
+source("src/R/simulate_data.R")
 
 # CONSTANTS
 nreps = 1 #number of Monte Carlo runs
+# MC conditions
+time_points = c(14) #Number of time points
+sample_sizes = c(500) #Number of participants
 ##Ordering of Models
 ### 1 - LCM
 ### 2 - AR
 ### 3 - MA
 ### 4 - ARMA
-model_names = c("LCM", "AR", "MA", "ARMA")
-data_generating_models = c(4)
-estimated_models = c(4)
+model_names = c("LCM", "AR", "MA", "ARMA", "ALT")
+data_generating_models = c(2)
+estimated_models = c(2)
 # features of models
-INIT <- TRUE # if true, use exact initial condition
 nlv <- 1 # number of latent variables
 ny <- 1 # number of sets of observed variables
 nx <- 0 # number of fixed regressors (covariates)
-nstates <- 2 # number of states in transition matrix (MA(1) has 2)
+nstates <- 1 # number of states in transition matrix (MA(1) has 2, ARMA(1, 1) has 2)
 p <- 1 # number of AR lags
 q <- 1 # number of MA lags
 # population values
 pop_values_all <- list(LCM = list(c(.3, .05, .1), c(1.2, 1.2, 1.2, 1.2, 1.2, 1.2), c(1,0.02))
                    , AR = list(c(.7), c(1))
                    , MA = list(c(.7), c(1))
-                   , ARMA = list(c(.7), c(.3), c(1)))
-# MC conditions
-time_points = c(14) #Number of time points
-sample_sizes = c(500) #Number of participants
+                   , ARMA = list(c(.7), c(.3), c(1))
+                   , ALT = list(c()))
 ######Ordering of Daily Diary Designs
 ### 1 - Complete Data
 ### 2 - One-Day Interval Design
@@ -51,7 +53,7 @@ sample_sizes = c(500) #Number of participants
 ### 11 - Reference, Two-Day Overlap Block Design
 ### 12 - Reference One-Day Interval Design
 ### 13 - Partially Random
-designs = c(1)#,7,6,11,12,13)
+designs = c(1,7,6,11,12,13)
 results_array <- list()
 all_results = data.frame() # Holds Monte Carlo results across conditions
 for (t in 1:length(time_points)){
@@ -63,9 +65,9 @@ for (t in 1:length(time_points)){
       model_name <- model_names[cur_model]
       pop_values <- pop_values_all[[match(model_name, names(pop_values_all))]]
 			for (run in 1:nreps){
-        source("src/R/model_matrices.R")
-        source("src/R/simulate_data.R")
-        complete_dat = y_all_wide[, 2:(nt + 1)]
+			  model_matrices <- model_matrix_setup(model_name, ny, nt, nlv, pop_values, nstates, p, q)
+        simulated_data <- simulate_data(model_matrices, ny, nt, nlv, pop_values, nstates)
+        complete_dat = simulated_data$y_all_wide[, 2:(nt + 1)]
 				for (d in 1:length(designs)){
 					design = designs[d] # Daily Diary Design
           # get information for missingness given design
@@ -74,14 +76,15 @@ for (t in 1:length(time_points)){
           # induce missingness into complete data set
 					missing_dat <- t(sapply(1:np, function(x){
             tmp <- matrix(NA, 1, nt)
-            tmp[nonmissall[x,]] <- unlist(complete_dat[x,][nonmissall[x,]])
+            tmp[nonmissall[x, ][!is.na(nonmissall[x, ])]] <- unlist(complete_dat[x,][nonmissall[x,][!is.na(nonmissall[x, ])]])
             return(tmp)
 					  }))
 					# write out data file with missingness in it
 					write.table(missing_dat, file = paste0("data/work/prepped/", model_name, ".dat")
 					            , row.names = FALSE
 					            , col.names = FALSE
-					            , sep = ",")
+					            , sep = ","
+                      , na = '.')
 				
 					# Here is where the data is estimated with a different model
 					for (mest in 1:length(estimated_models)){

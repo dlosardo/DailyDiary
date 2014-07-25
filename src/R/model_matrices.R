@@ -1,13 +1,3 @@
-if(!INIT){
-  npad = 50 # start up
-  ist = npad + 1   
-  ntt = nt + npad
-}
-if(INIT){
-  ntt = nt
-  ist = 1
-}
-
 # y = c + Z*lvs + error, error ~ N(0, U)
 # lvs_t = d + T*lvs_{t-1} + R*disturbance, disturbance ~ N(0, V)
 # initial condition covariance structure can be solved for stationary processes:
@@ -37,10 +27,9 @@ get_model_matrices_lcm <- function(ny, nt, nlv, pop_values){
 }
 
 #for AR(1)
-get_model_matrices_ar <- function(ny, nt, nlv, pop_values, nstates, nlag = 1){
+get_model_matrices_ar <- function(ny, nt, nlv, pop_values, nstates){
   I = diag(1, nstates - 1)
   lower_trans <- matrix(cbind(diag(1, nstates - 1), rep(0, nstates - 1)), nstates - 1, nstates)
-  ## lv_transition <- vector_to_non_symmetric_square_matrix(pop_values[[1]])
   lv_transition <- rbind(pop_values[[1]], lower_trans)
   lv_covs <- lv_cov_matrix(pop_values[[2]])
   r_vals <- c(1, rep(0, nstates - 1))
@@ -112,25 +101,20 @@ get_model_matrices_arma <- function(ny, nt, nlv, pop_values, nstates, p, q){
               , lv_covs0 = lv_covs0, Rmat = Rmat))
 }
 
-if (model_name == "AR"){
-  matrices <- get_model_matrices_ar(ny, nt, nlv, pop_values, nstates)
-} else if (model_name == "MA"){
-  matrices <- get_model_matrices_ma(ny, nt, nlv, pop_values, nstates)
-} else if (model_name == "LCM"){
-  matrices <- get_model_matrices_lcm(ny, nt, nlv, pop_values)
-} else if (model_name == "ARMA"){
-  matrices <- get_model_matrices_arma(ny, nt, nlv, pop_values, nstates, p, q)
+model_matrix_setup <- function(model_name, ny, nt, nlv, pop_values, nstates, p, q){
+  if (model_name == "AR"){
+    matrices <- get_model_matrices_ar(ny, nt, nlv, pop_values, nstates)
+  } else if (model_name == "MA"){
+    matrices <- get_model_matrices_ma(ny, nt, nlv, pop_values, nstates)
+  } else if (model_name == "LCM"){
+    matrices <- get_model_matrices_lcm(ny, nt, nlv, pop_values)
+  } else if (model_name == "ARMA"){
+    matrices <- get_model_matrices_arma(ny, nt, nlv, pop_values, nstates, p, q)
+  }
+  matrices$chol_measurement_covs <- if(det(matrices[["measurement_covs"]] > 0)) chol(matrices[["measurement_covs"]]) else matrix(0, ny*nt, ny*nt)
+  matrices$chol_lv_covs <- if(det(matrices[["lv_covs"]]) > 0) chol(matrices[["lv_covs"]]) else matrix(0, nlv, nlv)
+  matrices$chol_lv_covs0 <- chol(matrices[["lv_covs0"]])
+  return(matrices)
 }
-
-lv_intercepts <- matrices[["lv_intercepts"]]
-measurement_intercepts <- matrices[["measurement_intercepts"]]
-lv_coef <- matrices[["lv_coef"]]
-lv_transition <- matrices[["lv_transition"]]
-lv0 <- matrices[["lv0"]]
-Rmat <- matrices[["Rmat"]]
-
-chol_measurement_covs <- if(det(matrices[["measurement_covs"]] > 0)) chol(matrices[["measurement_covs"]]) else matrix(0, ny*nt, ny*nt)
-chol_lv_covs <- if(det(matrices[["lv_covs"]]) > 0) chol(matrices[["lv_covs"]]) else matrix(0, nlv, nlv)
-chol_lv_covs0 <- chol(matrices[["lv_covs0"]])
 
 	

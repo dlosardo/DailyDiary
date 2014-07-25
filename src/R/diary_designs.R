@@ -57,6 +57,7 @@ missing_info_for_designs <- function(design, nt, np){
   #Five-Day Staggered, (no?) Overlap Block Design#
   #################################################################
   if (design == 6) {
+    #nonmiss_1 <- 1:(floor(nt/3))
     nonmiss_1 = c(1,2,3,4,5,NA)
     nonmiss_2 = c(5,6,7,8,9,10)
     nonmiss_3 = c(10,11,12,13,14,NA)
