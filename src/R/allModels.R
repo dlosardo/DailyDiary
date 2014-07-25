@@ -1,5 +1,5 @@
-#rm(list=ls(all=TRUE)) #To remove all stored objects
-set.seed(3421345)
+rm(list=ls(all=TRUE)) #To remove all stored objects
+set.seed(34213455)
 ########################
 ########################
 ########################
@@ -24,15 +24,15 @@ sample_sizes = c(500) #Number of participants
 ### 3 - MA
 ### 4 - ARMA
 model_names = c("LCM", "AR", "MA", "ARMA", "ALT")
-data_generating_models = c(2)
-estimated_models = c(2)
+data_generating_models = c(1)
+estimated_models = c(1)
 # features of models
-nlv <- 1 # number of latent variables
+nlv <- 2 # number of latent variables
 ny <- 1 # number of sets of observed variables
 nx <- 0 # number of fixed regressors (covariates)
-nstates <- 1 # number of states in transition matrix (MA(1) has 2, ARMA(1, 1) has 2)
 p <- 1 # number of AR lags
 q <- 1 # number of MA lags
+nstates <- get_nstates(model_names[data_generating_models], nlv, p, q) # number of states in transition matrix (MA(1) has 2, ARMA(1, 1) has 2)
 # population values
 pop_values_all <- list(LCM = list(c(.3, .05, .1), c(1.2, 1.2, 1.2, 1.2, 1.2, 1.2), c(1,0.02))
                    , AR = list(c(.7), c(1))
@@ -53,8 +53,7 @@ pop_values_all <- list(LCM = list(c(.3, .05, .1), c(1.2, 1.2, 1.2, 1.2, 1.2, 1.2
 ### 11 - Reference, Two-Day Overlap Block Design
 ### 12 - Reference One-Day Interval Design
 ### 13 - Partially Random
-designs = c(1,7,6,11,12,13)
-results_array <- list()
+designs = c(1, 7, 6, 11, 12, 13)
 all_results = data.frame() # Holds Monte Carlo results across conditions
 for (t in 1:length(time_points)){
   nt = time_points[t] 	# number of time points

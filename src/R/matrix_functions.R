@@ -51,3 +51,17 @@ initial_cov_matrix <- function(nstates, Tmat, Rmat, Vmat){
 get_ar_lags <- function(y, items, nt){
   sapply(y:nt, function(x) paste0(items[x], " on ", items[x - (y - 1)], " (", y - 1, ");\n"))
 }
+
+get_nstates <- function(model_type, nlv, p, q){
+  if (model_type == "LCM"){
+    return(nlv)    
+  } else if (model_type == "AR"){
+    return(nlv)
+  } else if (model_type == "MA"){
+    return(nlv + 1)
+  } else if (model_type == "ARMA"){
+    return(nlv + 1)
+  } else{
+    return(NULL)
+  }
+}
