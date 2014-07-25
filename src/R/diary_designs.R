@@ -31,8 +31,8 @@ missing_info_for_designs <- function(design, nt, np){
   #Creating missingness for One-Day Interval Block Design#
   ##########################################################
   if (design == 4) {
-    nonmiss_1 = seq(1, nt/2, 2) #c(1,3,5,7)
-    nonmiss_2 = seq(nt/2 + 1, nt, 2) #c(8,10,12,14)
+    nonmiss_1 = seq(1, floor(nt/2), 2) #c(1,3,5,7)
+    nonmiss_2 = seq(floor(nt/2 + 1), nt, 2) #c(8,10,12,14)
     nonmiss = matrix(nonmiss_1, (np/2), length(nonmiss_1), byrow = T) #matrix has non-missing data points
     nonmiss1 = matrix(nonmiss_2, (np/2), length(nonmiss_2), byrow = T)
     nonmissall = rbind(nonmiss,nonmiss1)
@@ -45,7 +45,7 @@ missing_info_for_designs <- function(design, nt, np){
   #################################################################
   if (design == 5) {
     nonmiss_1 = c(1:(nt/2)) #c(1,2,3,4,5,6,7)
-    nonmiss_2 = c((nt/2 + 1):nt) # c(8,9,10,11,12,13,14)
+    nonmiss_2 = c(floor(nt/2 + 1):nt) # c(8,9,10,11,12,13,14)
     nonmiss = matrix(nonmiss_1, (np/2), length(nonmiss_1), byrow = T) #matrix has non-missing data points
     nonmiss1 = matrix(nonmiss_2, (np/2), length(nonmiss_2), byrow = T)
     nonmissall = rbind(nonmiss, nonmiss1)
