@@ -1,0 +1,30 @@
+# History files
+.Rhistory
+
+# Example code in package build process
+*-Ex.R
+
+#log files
+*.log
+
+# Platform files
+.DS_Store
+
+# Editor files
+.*.sw[po]
+~$*
+.RData
+
+# Temporary directories
+.run/
+work/
+extracted/
+src/Rhtml/figure/
+dcmr.Rcheck
+
+# Python compiled files
+*.pyc
+.Rproj.user
+
+# build files
+*.tar.gz
