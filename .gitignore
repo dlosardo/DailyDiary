@@ -21,6 +21,7 @@ work/
 extracted/
 src/Rhtml/figure/
 dcmr.Rcheck
+data/work/mplus/
 
 # Python compiled files
 *.pyc
