@@ -23,21 +23,26 @@ sample_sizes = c(500) #Number of participants
 ### 2 - AR
 ### 3 - MA
 ### 4 - ARMA
-model_names = c("LCM", "AR", "MA", "ARMA", "ALT")
-data_generating_models = c(1)
-estimated_models = c(1)
+model_names = c("LCM", "MLM", "AR", "MA", "ARMA", "ALT")
+data_generating_models = c("MLM")
+estimated_models = c("MLM")
 # features of models
 nlv <- 2 # number of latent variables
 ny <- 1 # number of sets of observed variables
 nx <- 0 # number of fixed regressors (covariates)
 p <- 1 # number of AR lags
 q <- 1 # number of MA lags
-nstates <- get_nstates(model_names[data_generating_models], nlv, p, q) # number of states in transition matrix (MA(1) has 2, ARMA(1, 1) has 2)
+nstates <- get_nstates(data_generating_models, nlv, p, q) # number of states in transition matrix (MA(1) has 2, ARMA(1, 1) has 2)
 # population values
-pop_values_all <- list(LCM = list(c(.3, .05, .1), c(1.2, 1.2, 1.2, 1.2, 1.2, 1.2), c(1,0.02))
-                   , AR = list(c(.7), c(1))
-                   , MA = list(c(.7), c(1))
-                   , ARMA = list(c(.7), c(.3), c(1))
+pop_values_all <- list(LCM = list(LVCov = c(.3, .05, .1)
+                                  , MeasurementCov = c(1.2)
+                                  , LVMeans = c(1, 0.02))
+                   , MLM = list(LVCov = c(.3, .05, .1)
+                                , MeasurementCov = c(1.2)
+                                , LVMeans = c(1, 0.02))
+                   , AR = list(ARParm1 = c(.7), ProcessNoise = c(1))
+                   , MA = list(MAParm1 = c(.7), ProcessNoise = c(1))
+                   , ARMA = list(ARParm1 = c(.7), MAParm1 = c(.3), ProcessNoise = c(1))
                    , ALT = list(c()))
 ######Ordering of Daily Diary Designs
 ### 1 - Complete Data
@@ -53,15 +58,13 @@ pop_values_all <- list(LCM = list(c(.3, .05, .1), c(1.2, 1.2, 1.2, 1.2, 1.2, 1.2
 ### 11 - Reference, Two-Day Overlap Block Design
 ### 12 - Reference One-Day Interval Design
 ### 13 - Partially Random
-designs = c(1, 7, 6, 11, 12, 13)
+designs = c(1)#, 7, 6, 11, 12, 13)
 all_results = data.frame() # Holds Monte Carlo results across conditions
 for (t in 1:length(time_points)){
   nt = time_points[t] 	# number of time points
 	for (s in 1:length(sample_sizes)){
 	  np = sample_sizes[s]	# number of subjects
-		for (m in 1:length(data_generating_models)){
-			cur_model = data_generating_models[m]
-      model_name <- model_names[cur_model]
+		for (model_name in data_generating_models){
       pop_values <- pop_values_all[[match(model_name, names(pop_values_all))]]
 			for (run in 1:nreps){
 			  model_matrices <- model_matrix_setup(model_name, ny, nt, nlv, pop_values, nstates, p, q)
@@ -78,7 +81,15 @@ for (t in 1:length(time_points)){
             tmp[nonmissall[x, ][!is.na(nonmissall[x, ])]] <- unlist(complete_dat[x,][nonmissall[x,][!is.na(nonmissall[x, ])]])
             return(tmp)
 					  }))
-					# write out data file with missingness in it
+					# write out data file with missingness in it (long format for MLM)
+          if(model_name == "MLM"){
+            missing_dat <- melt(missing_dat, varnames = c("id", "time_point"))
+            covariate_dat <- melt(model_matrices$covariate
+                                  , varnames = c("id", "time_point")
+                                  , value.name = "covariate")
+            missing_dat <- merge(missing_dat, covariate_dat, by = c("id", "time_point"))
+            missing_dat <- missing_dat[with(missing_dat, order(id, time_point)), ][, c("id", "value", "covariate")]
+          }
 					write.table(missing_dat, file = paste0("data/work/prepped/", model_name, ".dat")
 					            , row.names = FALSE
 					            , col.names = FALSE
@@ -86,13 +97,14 @@ for (t in 1:length(time_points)){
                       , na = '.')
 				
 					# Here is where the data is estimated with a different model
-					for (mest in 1:length(estimated_models)){
+					for (model_est_name in estimated_models){
 						print(paste(c(" iter: ", run, " N: ", np, "D: " , d)))
-						model_est = estimated_models[mest]
-            model_est_name <- model_names[model_est]
-						
   					# generate mplus script
-						create_mplus_script(model_est_name, model_name, "ML", sprintf("y%d", 1:nt))
+            if (model_est_name == "MLM"){
+              create_mplus_script(model_est_name, model_name, "ML", c("id", "y", "x"))
+            } else {
+						  create_mplus_script(model_est_name, model_name, "ML", sprintf("y%d", 1:nt))
+            }
 						# Opening Mplus
 						shell_file = paste("bin/mplus_open_", model_est_name, ".sh", sep = "") #shell script for opening Mplus
 						shell_file = shQuote(shell_file)

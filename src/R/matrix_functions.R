@@ -2,6 +2,9 @@
 get_num_vars <- function(x){
   (sqrt(8 * x + 1) - 1)/2
 }
+get_unique_elements <- function(x){
+  (x*(x+1))/2
+}
 #writing function for 'vec' operator (stacking columns of matrices)
 vecop = function(M){
   sM = NULL
@@ -52,9 +55,19 @@ get_ar_lags <- function(y, items, nt){
   sapply(y:nt, function(x) paste0(items[x], " on ", items[x - (y - 1)], " (", y - 1, ");\n"))
 }
 
+arma_trans_first_row <- function(pop_values){
+  if (length(pop_values) == 1){
+    return(c(pop_values, 0))
+  } else{
+    return(pop_values)
+  }
+}
+
 get_nstates <- function(model_type, nlv, p, q){
   if (model_type == "LCM"){
-    return(nlv)    
+    return(nlv)
+  } else if (model_type == "MLM"){
+    return(nlv)
   } else if (model_type == "AR"){
     return(nlv)
   } else if (model_type == "MA"){

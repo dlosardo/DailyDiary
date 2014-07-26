@@ -58,13 +58,13 @@ missing_info_for_designs <- function(design, nt, np){
   #################################################################
   if (design == 6) {
     #nonmiss_1 <- 1:(floor(nt/3))
-    nonmiss_1 = c(1,2,3,4,5,NA)
+    nonmiss_1 = c(1,2,3,4,5)
     nonmiss_2 = c(5,6,7,8,9,10)
-    nonmiss_3 = c(10,11,12,13,14,NA)
+    nonmiss_3 = c(10,11,12,13,14)
     nonmiss = matrix(nonmiss_1,((np/3)+(np%%3)),length(nonmiss_1),byrow = T) #matrix has non-missing data points
     nonmiss1 = matrix(nonmiss_2,(np/3),length(nonmiss_2),byrow = T)
     nonmiss2 = matrix(nonmiss_3,(np/3),length(nonmiss_3),byrow = T)
-    nonmissall = rbind(nonmiss,nonmiss1,nonmiss2)
+    nonmissall = rbind.fill.matrix(nonmiss,nonmiss1,nonmiss2)
     combine = c(nonmiss_1,nonmiss_2,nonmiss_3)
     combine = unique(combine)
     combine = sort(combine,na.last=NA)
@@ -106,13 +106,13 @@ missing_info_for_designs <- function(design, nt, np){
   #The Reference, Block design#
   #################################################################
   if (design==10) {
-    nonmiss.1 = c(1,2,3,4,5,14,NA)
+    nonmiss.1 = c(1,2,3,4,5,14)
     nonmiss.2 = c(1,6,7,8,9,10,14)
-    nonmiss.3 = c(1,11,12,13,14,NA,NA)
+    nonmiss.3 = c(1,11,12,13,14)
     nonmiss = matrix(nonmiss.1,((np/3)+(np%%3)),length(nonmiss.1),byrow = T) #matrix has non-missing data points
     nonmiss1 = matrix(nonmiss.2,(np/3),length(nonmiss.2),byrow = T)
     nonmiss2 = matrix(nonmiss.3,(np/3),length(nonmiss.3),byrow = T)
-    nonmissall = rbind(nonmiss,nonmiss1,nonmiss2)
+    nonmissall = rbind.fill.matrix(nonmiss,nonmiss1,nonmiss2)
     combine = c(nonmiss.1,nonmiss.2,nonmiss.3)
     combine = unique(combine)
     combine = sort(combine,na.last=NA)
@@ -121,15 +121,15 @@ missing_info_for_designs <- function(design, nt, np){
   #Reference, Two-Day Overlap Block Design#
   #################################################################
   if (design==11) {
-    nonmiss.1 = c(1,2,3,4,5,14,NA)
+    nonmiss.1 = c(1,2,3,4,5,14)
     nonmiss.2 = c(1,4,5,6,7,8,14)
     nonmiss.3 = c(1,7,8,9,10,11,14)
-    nonmiss.4 = c(1,10,11,12,13,14,NA)
+    nonmiss.4 = c(1,10,11,12,13,14)
     nonmiss = matrix(nonmiss.1,((np/4)+(np%%4)),length(nonmiss.1),byrow = T) #matrix has non-missing data points
     nonmiss1 = matrix(nonmiss.2,(np/4),length(nonmiss.2),byrow = T)
     nonmiss2 = matrix(nonmiss.3,(np/4),length(nonmiss.3),byrow = T)
-    nonmiss3 = matrix(nonmiss.4,(np/4),length(nonmiss.3),byrow = T)
-    nonmissall = rbind(nonmiss,nonmiss1,nonmiss2,nonmiss3)
+    nonmiss3 = matrix(nonmiss.4,(np/4),length(nonmiss.4),byrow = T)
+    nonmissall = rbind.fill.matrix(nonmiss,nonmiss1,nonmiss2,nonmiss3)
     combine = c(nonmiss.1,nonmiss.2,nonmiss.3,nonmiss.4)
     combine = unique(combine)
     combine = sort(combine,na.last=NA)

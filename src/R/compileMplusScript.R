@@ -1,20 +1,17 @@
 #!/usr/bin/env Rscript
 #
 
-create_mplus_script <- function(model_type, data_type, estimator, items, item_groups = 0, ncategories = 4){
+create_mplus_script <- function(model_type, data_type, estimator, items, item_groups = 0
+                                , ncategories = 4, demo_vars = "", data_scale = "CONTINUOUS"){
   to_save_dir <- "."
   input_dir <- "src/mplus"
   data_dir <- "../../../data/work/prepped"
-  
   identifier <- model_type
   file_model <- paste(input_dir, "/", identifier, ".inp", sep = "")
   
-  demo_vars <- ""
-  
-  
   title <- paste("title: ", identifier, ";\n")
   data <- get_data_command(data_dir, data_type)
-  variables <- get_variable_command("CONTINUOUS", demo_vars, items)
+  variables <- get_variable_command(model_type, data_scale, demo_vars, items)
   analysis <- get_analysis_command(model_type, estimator)
   model <- get_model_command(model_type, items, ncategories, item_groups)
   output <- "\noutput:tech1;\n"
@@ -39,7 +36,7 @@ data_scales <- function(data_scale){
     return("")
   else return("ERROR: NOT A VALID DATA SCALE")
 }
-get_variable_command <- function(data_scale, demo_vars, items){
+get_variable_command <- function(model_type, data_scale, demo_vars, items){
   data_scale <- data_scales(data_scale)
   names <- paste0(c("names =" , c(demo_vars, items), ";\n"))
   usevariables <- paste0(c("\tusevariables =", items, ";\n"))
@@ -48,7 +45,11 @@ get_variable_command <- function(data_scale, demo_vars, items){
     data_types <- paste0(c("\t", data_scale,  " = ", items, ";\n"))
   }
   missing <- "\tmissing = .;\n"
-  variables <- paste(c("\nvariable:", names, usevariables, data_types, missing), sep = "")
+  cluster <- ""
+  if (model_type == "MLM"){
+    cluster <- paste0(c("within = x;\nbetween = ;\ncluster = id;\n"))
+  }
+  variables <- paste(c("\nvariable:", names, usevariables, data_types, missing, cluster), sep = "")
   return(variables)
 }
 
@@ -58,6 +59,8 @@ get_analysis_command <- function(model_type, estimator){
     type = paste0(c("type = efa 1 ", NUM_FACTORS, ";\n"))
   }else if (model_type == "LC"){
     type = "type = mixture;\n"
+  }else if (model_type == "MLM"){
+    type = "type = twolevel random;\n"  
   }else {
     type = ""
   }
@@ -146,18 +149,12 @@ get_model_command <- function(model_type, items, ncategories, item_groups){
     
   }else if(model_type == "MA"){
     model <- c(
-      paste0("!initial status\n inity by ", items[1], "@0;\n inity*;\n [inity@0]; \n ", items[1], " on inity@1;"),
-      
-      #paste0("!initial status\n inity by ", items[1], "@0;\n inity*;\n [inity*]; \n ", items[1], " on inity@1;"),
-      
-      
+      paste0("!initial status\n inity by ", items[1], "@0;\n inity*;\n [inity@0]; \n ", items[1], " on inity@1;"),      
       paste0("ksi", 1:nt, " by ", items[1:nt], "@1;\n"),
       sapply(2:nt, function(x) paste0(items[x], " on ksi", x - 1, " (1);\n")),
       paste0("ksi", 1, "-ksi", nt, " (2);\n"),
       paste0(items[1], "-", items[nt], "@0;\n"),
       paste0("[", items[1], "-", items[nt], "@0];\n")
-      #paste0("inity with ", items[1], "*;\n")
-      #paste0(items[1], "*;\n [", items[1], "*];\n")
     )
     covs <- NULL
     for (i in 1:(nt - 1)){
@@ -183,7 +180,9 @@ get_model_command <- function(model_type, items, ncategories, item_groups){
     covs <- c(covs, paste0("inity with ksi", 1:nt, "@0;\n"))
     model <- paste0(c("\nmodel: \n", model, covs))
     
-  }else {
+  } else if (model_type == "MLM"){
+    model <- c("\n model: %WITHIN%\ns | y on x;\n%BETWEEN%\ny with s;\n")
+  } else {
     model = ""
   } 
   return(model)
