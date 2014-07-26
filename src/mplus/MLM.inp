@@ -1,0 +1,31 @@
+title:  MLM ;
+
+data: file =  '../../../data/work/prepped/MLM.dat' ;
+ 
+variable: names =  id y x ;
+ 
+	usevariables = id y x ;
+  	missing = .;
+ within = x;
+between = ;
+cluster = id;
+ 
+
+analysis:  estimator = ML;
+ type = twolevel random;
+ 
+
+ model: %WITHIN%
+s | y on x;
+%BETWEEN%
+y with s;
+ 
+output:tech1;
+ 
+
+savedata: 
+results= './item_parameters/results.MLM.dat';
+file= './factor_scores/fscores.MLM.dat';
+save = fscores;
+estimates= './estimates/estimates.MLM.dat';
+
