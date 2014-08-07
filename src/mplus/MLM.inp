@@ -1,6 +1,6 @@
 title:  MLM ;
 
-data: file =  '../../../data/work/prepped/MLM.dat' ;
+data: file =  '../../../data/work/prepped/LCM.dat' ;
  
 variable: names =  id y x ;
  

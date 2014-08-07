@@ -45,6 +45,13 @@ transition_matrix <- function(values){
   vector_to_non_symmetric_square_matrix(values)
 }
 
+initial_mean_vector <- function(Tmat, a){
+  I <- diag(1, nrow(Tmat))
+  solve(I - Tmat)*a
+}
+alt_mean <- function(mu_int, mu_slp, ar){
+  (1 - ar)^(-1)*mu_int - ar*(1 - ar)^(-2)*mu_slp
+}
 initial_cov_matrix <- function(nstates, Tmat, Rmat, Vmat){
   I <- diag(1, nstates^2)
   vals <- solve(I - (Tmat%x%Tmat))%*%matrix(vecop(Rmat%*%Vmat%*%t(Rmat)), nstates^2, 1)
@@ -62,19 +69,31 @@ arma_trans_first_row <- function(pop_values){
     return(pop_values)
   }
 }
-
-get_nstates <- function(model_type, nlv, p, q){
-  if (model_type == "LCM"){
+get_nlv <- function(model_name){
+  if (model_name == "LCM" | model_name == "MLM"){
+    return(2)
+  } else if (model_name == "AR" | model_name == "MA" | model_name == "ARMA"){
+    return(1)
+  } else if (model_name == "ALT"){
+    return(3)
+  } else {
+    return("INVALID MODEL NAME")
+  }
+}
+get_nstates <- function(model_name, nlv, p, q){
+  if (model_name == "LCM"){
     return(nlv)
-  } else if (model_type == "MLM"){
+  } else if (model_name == "MLM"){
     return(nlv)
-  } else if (model_type == "AR"){
+  } else if (model_name == "AR"){
     return(nlv)
-  } else if (model_type == "MA"){
+  } else if (model_name == "MA"){
     return(nlv + 1)
-  } else if (model_type == "ARMA"){
+  } else if (model_name == "ARMA"){
     return(nlv + 1)
+  } else if (model_name == "ALT"){
+    return(nlv)
   } else{
-    return(NULL)
+    return("INVALID MODEL NAME")
   }
 }

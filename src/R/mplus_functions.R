@@ -1011,3 +1011,56 @@ read_mplus_cprobs <- function(test_name, lesson_name, model_names){
   irt_fscores <- llply(model_names, function(x){
     read.table(sprintf("data/work/mplus/class_probabilities/cprobs.%s.%s.dat", mplus_model_prefix, x))})
 }
+
+get_results_names <- function(model_name){
+  if (model_name == "MLM"){
+    return(c("rvary", "meanb1", "inty", "varb1", "covb0b1", "varb0"))
+  } else if (model_name == "LCM"){
+    return(c("rvar_y","mean_alph","mean_beta","var_alph",
+             "cov_ab","var_beta"))
+  } else if (model_name == "AR"){
+    return(c("ARproc", "varinity","procnoise"))
+  } else if (model_name == "MA"){
+    return(c("MAproc", "varinity","procnoise"))
+  } else {
+    return(NULL)
+  }
+}
+
+get_sd_names <- function(model_name){
+  tmp_names <- get_results_names(model_name)
+  sd_names <- sprintf("se_%s", tmp_names)
+  return(sd_names)
+}
+
+get_all_names <- function(model_name){
+  all_names <- c(get_results_names(model_name), get_sd_names(model_name))
+  return(all_names)
+}
+
+get_mplus_standard_results <- function(){
+  return(c("Chi-square : Value", "Chi-square : Degrees of Freedom", "Chi-square : P-Value"
+           , "CFI", "TLI", "H0 Loglikelihood", "H1 Loglikelihood", "Number of Free Parameters"
+           , "Akaike (AIC)", "Bayesian (BIC)", "Sample-Size Adjusted BIC", "RMSEA : Estimate"
+           , "RMSEA : Low CI", "RMSEA : High CI", "RMSEA : Probability", "SRMR"))
+}
+
+get_sim_info_names <- function(){
+  return(c("nt", "np", "dg", "est", "rep", "design", "error_flag"))
+}
+
+get_pop_values_mplus_order <- function(model_name, pop_values_all){
+  pop_values <- NULL
+  pop_list <- pop_values_all[[model_name]]
+  if (model_name == "MLM"){
+    pop_values <- c(pop_list[["MeasurementCov"]], pop_list[["LVMeans"]][2], pop_list[["LVMeans"]][1]
+                    , pop_list[["LVCov"]][3], pop_list[["LVCov"]][2], pop_list[["LVCov"]][1])
+  } else if (model_name == "LCM"){
+    pop_values <- c(pop_list[["MeasurementCov"]], pop_list[["LVMeans"]][1], pop_list[["LVMeans"]][2]
+                    , pop_list[["LVCov"]][1], pop_list[["LVCov"]][2], pop_list[["LVCov"]][3])
+  } else if (model_name == "AR"){
+    pop_values <- c(pop_list[["ARParm1"]], NA, pop_list[["ProcessNoise"]])
+  } else if (model_name == "MA"){
+    pop_values <- c(pop_list[["MAParm1"]], NA, pop_list[["ProcessNoise"]])  }
+  return(pop_values)
+}

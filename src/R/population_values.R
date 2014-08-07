@@ -1,0 +1,15 @@
+get_population_values <- function(){
+  list(LCM = list(LVCov = c(.3, .05, .1)
+                  , MeasurementCov = c(1.2)
+                  , LVMeans = c(1, 0.02))
+       , MLM = list(LVCov = c(.3, .05, .1)
+                    , MeasurementCov = c(1.2)
+                    , LVMeans = c(1, 0.02))
+       , AR = list(ARParm1 = c(.7), ProcessNoise = c(1))
+       , MA = list(MAParm1 = c(.7), ProcessNoise = c(1))
+       , ARMA = list(ARParm1 = c(.7), MAParm1 = c(.3), ProcessNoise = c(1))
+       , ALT = list(ARParm1 = c(.7), ProcessNoise = c(1)
+                    , LVCov = c(1, 0, .3, 0, .05, .1)
+                    , MeasurementCov = c(1.2)
+                    , LVMeans = c(0, 1, 0.02)))
+}

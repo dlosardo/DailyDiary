@@ -1,13 +1,13 @@
 title:  MA ;
 
-data: file =  '../../../data/work/prepped/MA.dat' ;
+data: file =  '../../../data/work/prepped/LCM.dat' ;
  
 variable: names =  y1 y2 y3 y4 y5 
 y6 y7 y8 y9 y10 y11 y12 y13 y14 ;
  	usevariables = y1 y2 y3 y4 y5 y6 y7 y8 y9 y10 y11 y12 
 y13 y14 ;
   	missing = .;
- 
+  
 analysis:  estimator = ML;
   
 model: 

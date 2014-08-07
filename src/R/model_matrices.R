@@ -60,7 +60,7 @@ get_model_matrices_ar <- function(ny, nt, nlv, pop_values, nstates){
   lv_covs <- lv_cov_matrix(pop_values[["ProcessNoise"]])
   r_vals <- c(1, rep(0, nstates - 1))
   Rmat <- matrix(r_vals, nrow = nstates)
-  state_covs <- Rmat%*%lv_covs%*%t(Rmat)
+  #state_covs <- Rmat%*%lv_covs%*%t(Rmat)
   lv_covs0 <- initial_cov_matrix(nstates, lv_transition, Rmat, lv_covs)
   lv0 = matrix(0, nstates, 1, byrow=T)
   measurement_intercepts = matrix(rep(0, ny*nt), ny*nt, 1, byrow = TRUE)
@@ -121,6 +121,33 @@ get_model_matrices_arma <- function(ny, nt, nlv, pop_values, nstates, p, q){
               , lv_covs0 = lv_covs0, Rmat = Rmat, covariate = covariate))
 }
 
+get_model_matrices_alt <- function(ny, nt, nlv, pop_values){
+  # Z
+  lv_coef <- matrix(c(rep(1, nt), rep(1, nt), 0:(nt-1)), nt, nlv)
+  covariate <- matrix(1, np, nt)
+  # V
+  lv_covs = diag(c(pop_values[["ProcessNoise"]], rep(0, nlv - 1)))
+  # T
+  lv_transition = diag(c(pop_values[["ARParm1"]], rep(1, nlv - 1)))
+  # U
+  #measurement_covs = diag(pop_values[["MeasurementCov"]], ny*nt, ny*nt)
+  measurement_covs = diag(0, ny*nt, ny*nt)
+  # c
+  lv_intercepts = matrix(rep(pop_values[["LVMeans"]], nlv), nlv, 1, byrow = TRUE)
+  # d
+  measurement_intercepts = matrix(rep(0, ny*nt), ny*nt, 1, byrow = TRUE)
+  Rmat <- diag(1, nlv)
+  # states a t = 1 
+  lv_covs0 = lv_cov_matrix(pop_values[["LVCov"]])
+  #lv_covsAR0 <- initial_cov_matrix(1, matrix(pop_values[["ARParm1"]]), matrix(1), matrix(pop_values[["ProcessNoise"]]))
+  #lv_covs0[1, 1] <- lv_covsAR0
+  lv0 = matrix(rep(pop_values[["LVMeans"]], nlv), nlv, 1, byrow=T)
+  return(list(lv_coef = lv_coef, lv_covs = lv_covs, lv_transition = lv_transition
+              , measurement_covs = measurement_covs, lv_intercepts = lv_intercepts
+              , measurement_intercepts = measurement_intercepts, lv0 = lv0
+              , lv_covs0 = lv_covs0, Rmat = Rmat, covariate = covariate))
+}
+
 model_matrix_setup <- function(model_name, ny, nt, nlv, pop_values, nstates, p, q){
   if (model_name == "AR"){
     matrices <- get_model_matrices_ar(ny, nt, nlv, pop_values, nstates)
@@ -132,9 +159,11 @@ model_matrix_setup <- function(model_name, ny, nt, nlv, pop_values, nstates, p, 
     matrices <- get_model_matrices_mlm(ny, nt, nlv, pop_values)
   } else if (model_name == "ARMA"){
     matrices <- get_model_matrices_arma(ny, nt, nlv, pop_values, nstates, p, q)
+  } else if (model_name == "ALT"){
+    matrices <- get_model_matrices_alt(ny, nt, nlv, pop_values)
   }
   matrices$chol_measurement_covs <- if(det(matrices[["measurement_covs"]] > 0)) chol(matrices[["measurement_covs"]]) else matrix(0, ny*nt, ny*nt)
-  matrices$chol_lv_covs <- if(det(matrices[["lv_covs"]]) > 0) chol(matrices[["lv_covs"]]) else matrix(0, nlv, nlv)
+  matrices$chol_lv_covs <- if(det(matrices[["lv_covs"]]) > 0) chol(matrices[["lv_covs"]]) else ldl(matrices[["lv_covs"]])
   matrices$chol_lv_covs0 <- chol(matrices[["lv_covs0"]])
   return(matrices)
 }

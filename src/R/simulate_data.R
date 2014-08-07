@@ -2,7 +2,7 @@
 simulate_data <- function(matrices, ny, nt, nlv, pop_values, nstates, p, q){
   lv = matrix(0, nt, nstates)
   y = matrix(0, nt, ny)
-  x = matrix(0, nt, nx)
+  #x = matrix(0, nt, nx)
   lv_all = matrix(0, nt*np, nstates)
   y_all_nt = matrix(0, nt*np, ny)
   for (i in 1:np){
@@ -10,17 +10,16 @@ simulate_data <- function(matrices, ny, nt, nlv, pop_values, nstates, p, q){
     lv[1, ] = t(init)
     error = t(rnorm(1)%*%matrices$chol_measurement_covs[1, 1])
     cur_y = matrices$measurement_intercepts[1] +
-      (matrices$lv_coef[1, ]*c(1, matrices$covariate[i, 1]))%*%lv[1, ] + error
+      (matrices$lv_coef[1, ]*c(rep(1, nlv - 1), matrices$covariate[i, 1]))%*%lv[1, ] + error
     y[1, 1] = cur_y
     for (t in 2:nt){
-      ifelse(t > nt, t_ <- 2, t_ <- t)
       disturbance = matrices$Rmat%*%matrix(rnorm(nlv)%*%matrices$chol_lv_covs, nlv, 1)
-      error = t(rnorm(ny)%*%matrices$chol_measurement_covs[t_, t_]) #only works with one y
+      error = t(rnorm(ny)%*%matrices$chol_measurement_covs[t, t]) #only works with one y
       prev_lv = as.matrix(lv[t - 1, ])
       cur_lv = matrices$lv_intercepts + matrices$lv_transition%*%prev_lv + disturbance
       lv[t, ] = t(cur_lv)
-      cur_y = matrices$measurement_intercepts[t_] +
-        (matrices$lv_coef[t_, ]*c(1, matrices$covariate[i, t]))%*%cur_lv + error
+      cur_y = matrices$measurement_intercepts[t] +
+        (matrices$lv_coef[t, ]*c(rep(1, nlv - 1), matrices$covariate[i, t]))%*%cur_lv + error
       y[t, 1:ny] = cur_y
     }
     y_all_nt[(1 + (i - 1) * nt):(i * nt), 1:ny] = y[(1:nt), 1:ny]

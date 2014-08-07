@@ -128,13 +128,13 @@ get_model_command <- function(model_type, items, ncategories, item_groups){
       paste0("slp by ", paste0(items, "@", 0:(nt-1), collapse =" "), ";\n"),
       paste0("int with slp;\nint slp;\n[int slp];\n"),
       paste0("[", paste0(items, "@0", collapse = " "), "];\n"),
-      paste0(paste0(items, collapse = " "), ";\n"))
+      paste0(paste0(items, collapse = " "), " (rvars);\n"))
     model <- paste0(c("\nmodel: \n", model))
   }else if(model_type == "AR"){
     nt <- max(grep("[0-9]+", items))
     model <- c(
       paste0("!initial status\n inity by ", items[1], "@0;\n inity*;\n [inity@0]; \n ", items[1], " on inity@1;"),
-      unlist(sapply(1:nstates, function(s) get_ar_lags(s + 1, items, nt))),
+      unlist(sapply(1:p, function(s) get_ar_lags(s + 1, items, nt))),
       paste0("ksi", 1:nt, " by ", items[1:nt], "@1;\n"),
       paste0("ksi", 1, "-ksi", nt, " (svars);\n"),
       paste0(items[1], "-", items[nt], "@0;\n"),
@@ -182,6 +182,29 @@ get_model_command <- function(model_type, items, ncategories, item_groups){
     
   } else if (model_type == "MLM"){
     model <- c("\n model: %WITHIN%\ns | y on x;\n%BETWEEN%\ny with s;\n")
+  } else if (model_type == "ALT"){
+    nt <- max(grep("[0-9]+", items))
+    model <- c(
+      #paste0("!initial status\n inity by ", items[1], "@0;\n inity*;\n [inity@0]; \n ", items[1], " on inity@1;"),
+      unlist(sapply(1:p, function(s) get_ar_lags(s + 1, items, nt))),
+      #paste0("ksi", 2:nt, " by ", items[2:nt], "@1;\n"),
+      #paste0("ksi", 2, "-ksi", nt, " (svars);\n"),
+      paste0(items[2], "-", items[nt], "*(vars);\n"),
+      paste0("[", items[1], "-", items[nt], "@0];\n")
+    )
+    covs <- NULL
+    #for (i in 2:(nt - 1)){
+    #  covs <- c(covs, paste0("ksi", i, " with ksi", (i+1):(nt), "@0;\n"))
+    #}
+    #covs <- c(covs, paste0("inity with ksi", 2:nt, "@0;\n"))
+    model <- c(model,
+      paste0("int by ", paste0(items[-1], "@1", collapse = " "), ";\n"),
+      paste0("slp by ", paste0(items[-1], "@", 1:(nt-1), collapse =" "), ";\n"),
+      paste0("int with slp;\nint slp;\n[int slp];\nint with y1@0;\nslp with y1@0;\n"))
+    #covs <- c(covs, c(paste0("int with ksi", 2:nt, "@0;\n")
+    #                  , paste0("slp with ksi", 2:nt, "@0;\n")
+    #                  , paste0("int with inity@0;\nslp with inity@0")))
+    model <- paste0(c("\nmodel: \n", model, covs))
   } else {
     model = ""
   } 
