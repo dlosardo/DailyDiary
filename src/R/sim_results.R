@@ -6,7 +6,8 @@ library(plyr)
 library(ggplot2)
 source('src/R/sim_results_functions.R')
 source('src/R/mplus_functions.R')
-
+#TODO: add in power, coverage, convergence info
+# functions for making tables/plots
 get_sim_results <- function(model_name, dat, pop_values){
   non_converged <- sum(apply(dat, 1, function(x) all(is.na(x))))
   dat <- dat[apply(dat, 1, function(x) !all(is.na(x))), ]
@@ -30,10 +31,7 @@ get_sim_results <- function(model_name, dat, pop_values){
   return(list(outs, outs_ses, non_converged))
 }
 
-get_fit_comparison_results <- function(dat_list){
-  flat_results <- ldply(dat_list, rbind)
-  ddply(flat_results, .(nt, np, design, rep), summarize, best_bic = est[Bayesian..BIC. == min(Bayesian..BIC., na.rm=T)])
-}
+fit_stat_list <- list("Akaike..AIC.", "Bayesian..BIC.", "Sample.Size.Adjusted.BIC","RMSEA...Estimate")
 model_names = c("LCM", "MLM", "AR", "MA")
 data_generating_model <- "LCM"
 estimated_models = c("LCM", "MLM", "AR", "MA")
@@ -47,6 +45,8 @@ pop_values <- data.frame(param = get_results_names(data_generating_model)
                          , pop_values = get_pop_values_mplus_order(data_generating_model, pop_values_all)
 )
 out <- get_sim_results(data_generating_model, result_list[[data_generating_model]], pop_values)
+fit_counts <- get_fit_comparison_results(result_list, fit_stat_list)
+fit_means <- get_mean_fit_statistics_results(result_list)
 t <- out[[1]]
 #pdf("data/output/bias_param.pdf")
 ggplot(t, aes(x = param, y = bias_param, group = factor(design)

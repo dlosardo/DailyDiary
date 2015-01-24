@@ -119,6 +119,11 @@ for (t in 1:length(time_points)){
   						names(results)[!names(results) %in% get_sim_info_names()] <- c(get_all_names(model_est_name), getResultsAfterParms(output))
               all_results_list[[model_est_name]][d + (run - 1)*length(designs) + (s - 1)*length(designs)*nreps
                 , match(names(results), names(all_results_list[[model_est_name]]))] <- results
+            } else {
+              all_results_list[[model_est_name]][d + (run - 1)*length(designs) + (s - 1)*length(designs)*nreps
+                , c("nt", "np", "dg", "est", "rep", "design", "error_flag")] <- data.frame(nt = nt, np = np, dg = model_name, est = model_est_name
+                                                                                           , rep = run, design = design, error_flag = error_flag,
+                                                                                           stringsAsFactors = FALSE)
             }
   				}# mest loop
   			}# d loop
